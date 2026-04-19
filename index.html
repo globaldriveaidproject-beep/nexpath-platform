@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>NexPath Platform</title>
+</head>
+<body style="font-family:Arial; background:#0f172a; color:white; text-align:center; padding:40px;">
+
+  <h1>🌍 NexPath AI Platform</h1>
+  <p>Global Help & Support System (Live Prototype)</p>
+
+  <h2>Request Help</h2>
+
+  <textarea id="input" placeholder="Describe your situation..." style="width:300px; height:100px;"></textarea>
+  <br><br>
+
+  <button onclick="analyze()">Submit</button>
+
+  <p id="output" style="margin-top:20px;"></p>
+
+  <script>
+    function analyze() {
+      let text = document.getElementById("input").value.toLowerCase();
+      let output = "";
+
+      if (text.includes("no place") || text.includes("shelter")) {
+        output = "🟥 HIGH PRIORITY: Emergency shelter needed.";
+      } 
+      else if (text.includes("food")) {
+        output = "🟧 MEDIUM PRIORITY: Food support needed.";
+      } 
+      else if (text.includes("child")) {
+        output = "🟥 URGENT: Child support needed immediately.";
+      } 
+      else {
+        output = "🟢 Request received. Community system activated.";
+      }
+
+      document.getElementById("output").innerText = output;
+    }
+  </script>
+
+</body>
+</html>
