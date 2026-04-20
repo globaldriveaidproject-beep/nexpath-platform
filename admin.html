@@ -21,34 +21,33 @@
     padding: 30px;
     border-radius: 15px;
     text-align: center;
-    width: 300px;
+    width: 320px;
   }
 
   input {
     width: 90%;
     padding: 10px;
-    margin-top: 15px;
+    margin: 10px 0;
     border-radius: 10px;
     border: none;
     outline: none;
   }
 
   button {
-    margin-top: 15px;
     padding: 10px 20px;
     border: none;
     border-radius: 10px;
     background: #00f5ff;
-    cursor: pointer;
     font-weight: bold;
+    cursor: pointer;
   }
 
   button:hover {
     background: #00c2cc;
   }
 
-  h2 {
-    color: #00f5ff;
+  #msg {
+    margin-top: 10px;
   }
 </style>
 </head>
@@ -56,31 +55,49 @@
 <body>
 
 <div class="box">
-  <h2>🔐 NexPath Admin Panel</h2>
-  <p>Enter Admin Key</p>
+  <h2>🔐 NexPath Admin Login</h2>
 
-  <input type="password" id="key" placeholder="Admin key">
+  <input type="email" id="email" placeholder="Email">
+  <input type="password" id="password" placeholder="Password">
 
   <button onclick="login()">Login</button>
 
   <p id="msg"></p>
 </div>
 
-<script>
-function login() {
-  const key = document.getElementById("key").value;
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword } 
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-  if (key === "nexpath-admin-2026") {
-    document.getElementById("msg").innerText = "✔ Access granted...";
-    
-    setTimeout(() => {
-      window.location.href = "dashboard.html";
-    }, 1000);
+const firebaseConfig = {
+  apiKey: "AIzaSyDZuksXvvht9xPUTX32uOQx7h8ODvuRwJo",
+  authDomain: "nexpath-platform.firebaseapp.com",
+  projectId: "nexpath-platform",
+  storageBucket: "nexpath-platform.firebasestorage.app",
+  messagingSenderId: "1094642467861",
+  appId: "1:1094642467861:web:a60226b4d96b57a2c8fa1c"
+};
 
-  } else {
-    document.getElementById("msg").innerText = "❌ Invalid admin key";
-  }
-}
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+
+window.login = function () {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+
+  signInWithEmailAndPassword(auth, email, password)
+    .then(() => {
+      document.getElementById("msg").innerText = "✔ Access granted...";
+
+      setTimeout(() => {
+        window.location.href = "dashboard.html";
+      }, 1000);
+    })
+    .catch(() => {
+      document.getElementById("msg").innerText = "❌ Invalid login";
+    });
+};
 </script>
 
 </body>
