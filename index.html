@@ -1,76 +1,115 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>NexPath Platform</title>
+<meta charset="UTF-8" />
+<title>NexPath AI</title>
+
+<style>
+  body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: radial-gradient(circle at top, #0f172a, #020617);
+    color: white;
+    text-align: center;
+    padding: 40px;
+  }
+
+  .container {
+    max-width: 600px;
+    margin: auto;
+    background: rgba(255,255,255,0.05);
+    padding: 25px;
+    border-radius: 20px;
+    box-shadow: 0 0 20px rgba(0,255,255,0.15);
+    backdrop-filter: blur(10px);
+  }
+
+  h1 {
+    color: #00f5ff;
+    font-size: 28px;
+    margin-bottom: 5px;
+  }
+
+  p {
+    opacity: 0.8;
+  }
+
+  textarea {
+    width: 100%;
+    height: 120px;
+    margin-top: 15px;
+    padding: 10px;
+    border-radius: 12px;
+    border: none;
+    outline: none;
+    font-size: 14px;
+  }
+
+  button {
+    margin-top: 15px;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 12px;
+    background: #00f5ff;
+    color: black;
+    font-weight: bold;
+    cursor: pointer;
+  }
+
+  button:hover {
+    background: #00c2cc;
+  }
+
+  #output {
+    margin-top: 20px;
+    white-space: pre-line;
+    font-size: 15px;
+  }
+
+  .glow {
+    text-shadow: 0 0 10px #00f5ff;
+  }
+</style>
 </head>
 
-<body style="font-family:Arial; background:#0f172a; color:white; text-align:center; padding:40px;">
+<body>
 
-  <h1>🌍 NexPath AI Platform</h1>
-  <p>Global Help & Support System (Live Prototype)</p>
+<div class="container">
 
-  <h2>Request Help</h2>
+  <h1 class="glow">🌍 NexPath AI</h1>
+  <p>Global Humanitarian Support System</p>
 
-  <textarea id="input" placeholder="Describe your situation..." style="width:300px; height:100px;"></textarea>
-  <br><br>
+  <textarea id="input" placeholder="Describe your situation..."></textarea>
 
-  <button onclick="analyze()">Submit</button>
+  <button onclick="analyze()">Submit Request</button>
 
-  <p id="output" style="margin-top:20px;"></p>
+  <div id="output"></div>
 
-  <script>
-    function analyze() {
-      let text = document.getElementById("input").value.toLowerCase();
-      let output = [];
+</div>
 
-if (text.includes("shelter") || text.includes("no place")) {
-  output.push("🟥 HIGH PRIORITY: Emergency shelter needed.");
+<script>
+function analyze() {
+  let text = document.getElementById("input").value.toLowerCase();
+  let output = [];
+
+  if (text.includes("shelter") || text.includes("no place")) {
+    output.push("🟥 CRITICAL: Emergency shelter required");
+  }
+
+  if (text.includes("food")) {
+    output.push("🟧 HIGH: Food assistance needed");
+  }
+
+  if (text.includes("child")) {
+    output.push("🟥 URGENT: Child protection support needed");
+  }
+
+  if (output.length === 0) {
+    output.push("🟢 RECEIVED: Case logged into global system");
+  }
+
+  document.getElementById("output").innerText = output.join("\n");
 }
-
-if (text.includes("food")) {
-  output.push("🟧 MEDIUM PRIORITY: Food support needed.");
-}
-
-if (text.includes("child")) {
-  output.push("🟥 URGENT: Child support needed immediately.");
-}
-
-if (output.length === 0) {
-  output.push("🟢 Request received. Community system activated.");
-}
-
-document.getElementById("output").innerText = output.join("\n");
-
-      // Save to Firebase (if connected)
-      if (window.saveRequest) {
-        window.saveRequest(text);
-      }
-    }
-  </script>
-  
-<!-- Firebase (ADD YOUR CONFIG HERE) -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyDZuksXvvht9xPUTX32uOQx7h8ODvuRwJo",
-    authDomain: "nexpath-platform.firebaseapp.com",
-    projectId: "nexpath-platform",
-    storageBucket: "nexpath-platform.firebasestorage.app",
-    messagingSenderId: "1094642467861",
-    appId: "1:1094642467861:web:a60226b4d96b57a2c8fa1c"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-
-  window.saveRequest = async function(text) {
-    await addDoc(collection(db, "requests"), {
-      message: text,
-      time: new Date()
-    });
-  };
 </script>
 
 </body>
