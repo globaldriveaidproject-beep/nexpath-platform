@@ -18,22 +18,72 @@
 <p id="output"></p>
 
 <script type="module">
-import { sendRequest, getPriority } from "./app.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, addDoc } 
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+const firebaseConfig = {
+  apiKey: "AIzaSyDZuksXvvht9xPUTX32uOQx7h8ODvuRwJo",
+  authDomain: "nexpath-platform.firebaseapp.com",
+  projectId: "nexpath-platform",
+  storageBucket: "nexpath-platform.firebasestorage.app",
+  messagingSenderId: "1094642467861",
+  appId: "1:1094642467861:web:a60226b4d96b57a2c8fa1c"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// 🌍 MAIN REQUEST ENGINE
 window.submitRequest = async function () {
-  let text = document.getElementById("input").value;
+  let text = document.getElementById("input").value.toLowerCase();
 
-  if (!text) return;
+  let priority = "LOW";
+  let tags = [];
 
-  // 1. Get AI priority
-  let priority = getPriority(text);
+  // 🟥 CRITICAL CASES
+  if (
+    text.includes("shelter") ||
+    text.includes("no place") ||
+    text.includes("homeless") ||
+    text.includes("no home")
+  ) {
+    priority = "CRITICAL";
+    tags.push("shelter");
+  }
 
-  // 2. Send to Firebase
-  await sendRequest(text);
+  if (text.includes("child")) {
+    priority = "CRITICAL";
+    tags.push("child");
+  }
 
-  // 3. Show response
-  document.getElementById("output").innerText =
-    "Request sent ✔ Priority: " + priority;
+  // 🟧 HIGH PRIORITY
+  if (text.includes("food")) {
+    priority = "HIGH";
+    tags.push("food");
+  }
+
+  // 🟢 DEFAULT
+  if (tags.length === 0) {
+    tags.push("general");
+  }
+
+  try {
+    await addDoc(collection(db, "requests"), {
+      message: text,
+      priority: priority,
+      status: "new",
+      tags: tags,
+      createdAt: new Date()
+    });
+
+    document.getElementById("output").innerText =
+      "Request sent ✔ Priority: " + priority;
+
+  } catch (error) {
+    document.getElementById("output").innerText =
+      "❌ Error sending request";
+  }
 };
 </script>
 
