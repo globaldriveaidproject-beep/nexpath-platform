@@ -60,6 +60,22 @@ onSnapshot(collection(db, "requests"), (snapshot) => {
 
     let div = document.createElement("div");
     div.className = "card";
+
+    // ⭐ PRIORITY SYSTEM
+    let priorityColor = "#00f5ff";
+
+    if (data.message.includes("shelter")) {
+      priorityColor = "red";
+    } 
+    else if (data.message.includes("food")) {
+      priorityColor = "orange";
+    } 
+    else if (data.message.includes("child")) {
+      priorityColor = "yellow";
+    }
+
+    div.style.borderLeft = "6px solid " + priorityColor;
+
     div.innerHTML = `
       <strong>Request:</strong> ${data.message} <br>
       <small>${new Date(data.time.seconds * 1000).toLocaleString()}</small>
