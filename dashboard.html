@@ -1,16 +1,17 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>NexPath Control Room</title>
+  <title>NexPath Global Command Center</title>
 </head>
 
 <body style="font-family:Arial;background:#0f172a;color:white;padding:20px">
 
-<h1>🚨 NexPath Emergency Control Room</h1>
+<h1>🚨 NexPath Global Command Center</h1>
 
-<p>Live global humanitarian requests</p>
+<p>Real-time humanitarian operations system</p>
 
-<!-- FILTERS -->
+<div id="summary" style="margin:15px 0; padding:10px; background:#111827; border-radius:10px;"></div>
+
 <div style="margin:20px 0;">
   <button onclick="filter('ALL')">All</button>
   <button onclick="filter('CRITICAL')">Critical</button>
@@ -18,12 +19,14 @@
   <button onclick="filter('LOW')">Low</button>
 </div>
 
-<!-- DASHBOARD -->
 <div id="list"></div>
+
+<h2>🌍 Global Activity Map</h2>
+<canvas id="map" width="600" height="300" style="background:#111827;border-radius:10px;"></canvas>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, getDocs } 
+import { getFirestore, collection, getDocs, updateDoc, doc } 
 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -45,56 +48,87 @@ async function loadData() {
   const snap = await getDocs(collection(db, "requests"));
 
   allRequests = [];
-
-  snap.forEach(doc => {
-    allRequests.push(doc.data());
-  });
+  snap.forEach(d => allRequests.push({ id: d.id, ...d.data() }));
 
   render(allRequests);
+  updateSummary();
+  drawMap(allRequests);
 }
 
-// 📊 RENDER DASHBOARD
+// 📊 SUMMARY
+function updateSummary() {
+  let total = allRequests.length;
+  let critical = allRequests.filter(r => r.priority === "CRITICAL").length;
+  let high = allRequests.filter(r => r.priority === "HIGH").length;
+
+  document.getElementById("summary").innerHTML = `
+    Total: ${total} | 
+    <span style="color:red">Critical: ${critical}</span> | 
+    <span style="color:orange">High: ${high}</span>
+  `;
+}
+
+// 📊 RENDER
 function render(data) {
   const list = document.getElementById("list");
   list.innerHTML = "";
 
   data.reverse().forEach(r => {
 
-    let color = "white";
-
-    if (r.priority === "CRITICAL") color = "red";
-    else if (r.priority === "HIGH") color = "orange";
-    else color = "lightgreen";
+    let color =
+      r.priority === "CRITICAL" ? "red" :
+      r.priority === "HIGH" ? "orange" : "lightgreen";
 
     list.innerHTML += `
-      <div style="
-        border:1px solid ${color};
-        padding:10px;
-        margin:10px;
-        border-radius:10px;
-      ">
+      <div style="border:1px solid ${color};padding:10px;margin:10px;border-radius:10px;">
         <h3 style="color:${color}">${r.priority}</h3>
-        <p><b>Message:</b> ${r.message}</p>
-        <p><b>Category:</b> ${r.category}</p>
-        <p><b>Email:</b> ${r.email}</p>
-        <p><b>Status:</b> ${r.status}</p>
-        <p><b>Time:</b> ${new Date(r.createdAt).toLocaleString()}</p>
+        <p>${r.message}</p>
+        <p>${r.category}</p>
+        <p>${r.email}</p>
+        <p>${r.status}</p>
+
+        <button onclick="resolve('${r.id}')">Mark Resolved</button>
       </div>
     `;
   });
 }
 
-// 🎯 FILTER SYSTEM
+// 🎯 FILTER
 window.filter = function(type) {
-  if (type === "ALL") {
-    render(allRequests);
-  } else {
-    let filtered = allRequests.filter(r => r.priority === type);
-    render(filtered);
-  }
+  if (type === "ALL") render(allRequests);
+  else render(allRequests.filter(r => r.priority === type));
 };
 
-// 🚀 AUTO LOAD
+// 🌍 MAP
+function drawMap(data) {
+  const canvas = document.getElementById("map");
+  const ctx = canvas.getContext("2d");
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  data.forEach(r => {
+    let x = Math.random() * canvas.width;
+    let y = Math.random() * canvas.height;
+
+    ctx.fillStyle =
+      r.priority === "CRITICAL" ? "red" :
+      r.priority === "HIGH" ? "orange" : "green";
+
+    ctx.beginPath();
+    ctx.arc(x, y, 5, 0, Math.PI * 2);
+    ctx.fill();
+  });
+}
+
+// ✅ RESOLVE
+window.resolve = async function(id) {
+  await updateDoc(doc(db, "requests", id), {
+    status: "resolved"
+  });
+
+  loadData();
+};
+
 loadData();
 setInterval(loadData, 5000);
 
