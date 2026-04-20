@@ -13,36 +13,27 @@
 
 <br><br>
 
-<button onclick="send()">Submit Request</button>
+<button onclick="submitRequest()">Submit Request</button>
 
 <p id="output"></p>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { sendRequest, getPriority } from "./app.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyDZuksXvvht9xPUTX32uOQx7h8ODvuRwJo",
-  authDomain: "nexpath-platform.firebaseapp.com",
-  projectId: "nexpath-platform",
-  storageBucket: "nexpath-platform.firebasestorage.app",
-  messagingSenderId: "1094642467861",
-  appId: "1:1094642467861:web:a60226b4d96b57a2c8fa1c"
-};
+window.submitRequest = async function () {
+  let text = document.getElementById("input").value;
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+  if (!text) return;
 
-window.send = async function () {
-  let text = document.getElementById("input").value.toLowerCase();
+  // 1. Get AI priority
+  let priority = getPriority(text);
 
-  await addDoc(collection(db,"requests"),{
-    message:text,
-    time:new Date()
-  });
+  // 2. Send to Firebase
+  await sendRequest(text);
 
+  // 3. Show response
   document.getElementById("output").innerText =
-    "Request sent ✔ We are processing it...";
+    "Request sent ✔ Priority: " + priority;
 };
 </script>
 
