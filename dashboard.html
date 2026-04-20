@@ -3,6 +3,10 @@
 <head>
   <title>NexPath Control Room</title>
 
+  <!-- 🌍 Leaflet Map -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
   <style>
     body {
       margin: 0;
@@ -14,6 +18,12 @@
 
     h1 {
       color: #00f5ff;
+    }
+
+    #map {
+      height: 300px;
+      border-radius: 10px;
+      margin-bottom: 20px;
     }
 
     .filters {
@@ -56,6 +66,10 @@
 
 <h1>🚨 NexPath Emergency Control Room</h1>
 
+<!-- 🌍 GLOBAL MAP -->
+<h2>🌍 Global Live Map</h2>
+<div id="map"></div>
+
 <div class="filters">
   <select id="filter" onchange="loadData()">
     <option value="ALL">All</option>
@@ -85,9 +99,18 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 let allData = [];
+let markers = [];
 
 const list = document.getElementById("list");
 
+// 🌍 INIT MAP
+const map = L.map('map').setView([20, 0], 2);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: 'NexPath Global Map'
+}).addTo(map);
+
+// 🧠 RENDER SYSTEM
 function render(data) {
   list.innerHTML = "";
 
@@ -113,7 +136,7 @@ function render(data) {
   });
 }
 
-// 🔄 REALTIME FIREBASE LISTENER
+// 🔄 REALTIME DATA
 onSnapshot(collection(db, "requests"), (snapshot) => {
   allData = snapshot.docs.map(doc => ({
     id: doc.id,
@@ -121,6 +144,33 @@ onSnapshot(collection(db, "requests"), (snapshot) => {
   }));
 
   render(allData);
+
+  // 🧹 CLEAR OLD MARKERS
+  markers.forEach(m => map.removeLayer(m));
+  markers = [];
+
+  // 📍 ADD MAP MARKERS
+  allData.forEach(item => {
+    if (item.location && item.location.lat) {
+
+      const marker = L.marker([item.location.lat, item.location.lng])
+        .addTo(map)
+        .bindPopup(`
+          <b>${item.priority}</b><br>
+          ${item.category}<br>
+          ${item.message}
+        `);
+
+      markers.push(marker);
+    }
+  });
+
+  // 🚨 ALERT CHECK
+  allData.forEach(item => {
+    if (item.priority === "CRITICAL") {
+      console.log("🚨 CRITICAL:", item.message);
+    }
+  });
 });
 
 // FILTER SYSTEM
