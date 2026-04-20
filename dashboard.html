@@ -1,73 +1,105 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8" />
-<title>NexPath Emergency Dashboard</title>
+  <title>NexPath Control Room</title>
 
-<style>
-  body {
-    margin: 0;
-    font-family: Arial;
-    background: #020617;
-    color: white;
-    padding: 20px;
-  }
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial;
+      background: #020617;
+      color: white;
+    }
 
-  h1 {
-    text-align: center;
-    color: #00f5ff;
-  }
+    h1 {
+      text-align: center;
+      padding: 20px;
+      color: #00f5ff;
+    }
 
-  .card {
-    background: rgba(255,255,255,0.05);
-    margin: 10px 0;
-    padding: 15px;
-    border-radius: 12px;
-    border-left: 5px solid gray;
-    position: relative;
-  }
+    .stats {
+      display: flex;
+      justify-content: space-around;
+      padding: 20px;
+    }
 
-  .CRITICAL { border-left-color: red; }
-  .HIGH { border-left-color: orange; }
-  .URGENT { border-left-color: #ff4d4d; }
-  .NORMAL { border-left-color: #00f5ff; }
+    .card {
+      background: rgba(255,255,255,0.05);
+      padding: 20px;
+      border-radius: 15px;
+      text-align: center;
+      width: 25%;
+    }
 
-  .tag {
-    font-size: 12px;
-    padding: 3px 8px;
-    border-radius: 6px;
-    background: rgba(255,255,255,0.1);
-    display: inline-block;
-  }
+    .card h2 {
+      margin: 0;
+      font-size: 28px;
+      color: #00f5ff;
+    }
 
-  .btn {
-    margin-top: 10px;
-    padding: 6px 10px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-  }
+    .requests {
+      padding: 20px;
+    }
 
-  .resolve {
-    background: #00f5ff;
-    color: black;
-  }
-</style>
+    .request {
+      background: rgba(255,255,255,0.05);
+      margin-bottom: 15px;
+      padding: 15px;
+      border-radius: 10px;
+    }
+
+    .critical { border-left: 5px solid red; }
+    .high { border-left: 5px solid orange; }
+    .low { border-left: 5px solid green; }
+
+    button {
+      margin-top: 10px;
+      padding: 8px 15px;
+      border: none;
+      border-radius: 8px;
+      background: #00f5ff;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    button:hover {
+      background: #00c2cc;
+    }
+  </style>
 </head>
 
 <body>
 
 <h1>🚨 NexPath Emergency Control Room</h1>
 
-<div id="data"></div>
+<div class="stats">
+  <div class="card">
+    <h2 id="total">0</h2>
+    <p>Total Requests</p>
+  </div>
 
-<audio id="alertSound">
-  <source src="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg" type="audio/ogg">
-</audio>
+  <div class="card">
+    <h2 id="critical">0</h2>
+    <p>Critical Cases</p>
+  </div>
+
+  <div class="card">
+    <h2 id="resolved">0</h2>
+    <p>Resolved</p>
+  </div>
+</div>
+
+<div class="requests" id="requests"></div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, onSnapshot, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {
+  getFirestore,
+  collection,
+  onSnapshot,
+  updateDoc,
+  doc
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDZuksXvvht9xPUTX32uOQx7h8ODvuRwJo",
@@ -81,54 +113,44 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-const container = document.getElementById("data");
-const alertSound = document.getElementById("alertSound");
-
-function detectPriority(message) {
-  message = message.toLowerCase();
-
-  if (message.includes("shelter") || message.includes("homeless")) return "CRITICAL";
-  if (message.includes("food")) return "HIGH";
-  if (message.includes("child")) return "URGENT";
-  return "NORMAL";
-}
-
-function playAlert(priority) {
-  if (priority === "CRITICAL") {
-    alertSound.play();
-    alert("🚨 CRITICAL ALERT: Immediate attention required!");
-  }
-}
+const requestsDiv = document.getElementById("requests");
 
 onSnapshot(collection(db, "requests"), (snapshot) => {
-  container.innerHTML = "";
+  requestsDiv.innerHTML = "";
 
-  snapshot.forEach(docSnap => {
-    let data = docSnap.data();
-    let id = docSnap.id;
+  let total = 0;
+  let critical = 0;
+  let resolved = 0;
 
-    let priority = detectPriority(data.message);
+  snapshot.forEach((docSnap) => {
+    const data = docSnap.data();
+    total++;
 
-    playAlert(priority);
+    if (data.priority === "CRITICAL") critical++;
+    if (data.status === "resolved") resolved++;
 
-    let div = document.createElement("div");
-    div.className = `card ${priority}`;
+    const div = document.createElement("div");
+    div.className = "request " + data.priority.toLowerCase();
 
     div.innerHTML = `
-      <div class="tag">${priority}</div><br>
-      <strong>${data.message}</strong><br>
-      <small>${new Date(data.time.seconds * 1000).toLocaleString()}</small><br>
-
-      <button class="btn resolve" onclick="resolve('${id}')">Mark Resolved</button>
+      <strong>${data.priority}</strong><br>
+      ${data.message}<br>
+      ${new Date(data.createdAt.seconds * 1000).toLocaleString()}<br>
+      <button onclick="resolve('${docSnap.id}')">Mark Resolved</button>
     `;
 
-    container.appendChild(div);
+    requestsDiv.appendChild(div);
   });
+
+  document.getElementById("total").innerText = total;
+  document.getElementById("critical").innerText = critical;
+  document.getElementById("resolved").innerText = resolved;
 });
 
-// Delete / resolve request
-window.resolve = async function(id) {
-  await deleteDoc(doc(db, "requests", id));
+window.resolve = async function (id) {
+  await updateDoc(doc(db, "requests", id), {
+    status: "resolved"
+  });
 };
 </script>
 
