@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<title>NexPath Live Dashboard</title>
+<title>NexPath Emergency Dashboard</title>
 
 <style>
   body {
@@ -24,6 +24,7 @@
     padding: 15px;
     border-radius: 12px;
     border-left: 5px solid gray;
+    position: relative;
   }
 
   .CRITICAL { border-left-color: red; }
@@ -37,20 +38,36 @@
     border-radius: 6px;
     background: rgba(255,255,255,0.1);
     display: inline-block;
-    margin-bottom: 5px;
+  }
+
+  .btn {
+    margin-top: 10px;
+    padding: 6px 10px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+
+  .resolve {
+    background: #00f5ff;
+    color: black;
   }
 </style>
 </head>
 
 <body>
 
-<h1>📊 NexPath Operations Dashboard</h1>
+<h1>🚨 NexPath Emergency Control Room</h1>
 
 <div id="data"></div>
 
+<audio id="alertSound">
+  <source src="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg" type="audio/ogg">
+</audio>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, collection, onSnapshot, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDZuksXvvht9xPUTX32uOQx7h8ODvuRwJo",
@@ -65,6 +82,7 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 const container = document.getElementById("data");
+const alertSound = document.getElementById("alertSound");
 
 function detectPriority(message) {
   message = message.toLowerCase();
@@ -75,41 +93,43 @@ function detectPriority(message) {
   return "NORMAL";
 }
 
+function playAlert(priority) {
+  if (priority === "CRITICAL") {
+    alertSound.play();
+    alert("🚨 CRITICAL ALERT: Immediate attention required!");
+  }
+}
+
 onSnapshot(collection(db, "requests"), (snapshot) => {
   container.innerHTML = "";
 
-  let items = [];
+  snapshot.forEach(docSnap => {
+    let data = docSnap.data();
+    let id = docSnap.id;
 
-  snapshot.forEach(doc => {
-    let data = doc.data();
     let priority = detectPriority(data.message);
 
-    items.push({
-      message: data.message,
-      time: data.time,
-      priority: priority
-    });
-  });
+    playAlert(priority);
 
-  // Sort CRITICAL first
-  items.sort((a, b) => {
-    const order = { "CRITICAL": 1, "URGENT": 2, "HIGH": 3, "NORMAL": 4 };
-    return order[a.priority] - order[b.priority];
-  });
-
-  items.forEach(item => {
     let div = document.createElement("div");
-    div.className = `card ${item.priority}`;
+    div.className = `card ${priority}`;
 
     div.innerHTML = `
-      <div class="tag">${item.priority}</div><br>
-      <strong>${item.message}</strong><br>
-      <small>${new Date(item.time.seconds * 1000).toLocaleString()}</small>
+      <div class="tag">${priority}</div><br>
+      <strong>${data.message}</strong><br>
+      <small>${new Date(data.time.seconds * 1000).toLocaleString()}</small><br>
+
+      <button class="btn resolve" onclick="resolve('${id}')">Mark Resolved</button>
     `;
 
     container.appendChild(div);
   });
 });
+
+// Delete / resolve request
+window.resolve = async function(id) {
+  await deleteDoc(doc(db, "requests", id));
+};
 </script>
 
 </body>
