@@ -1,87 +1,3 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>NexPath Control Room</title>
-
-  <!-- 🌍 Leaflet Map -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial;
-      background: #0b1220;
-      color: white;
-      padding: 20px;
-    }
-
-    h1 {
-      color: #00f5ff;
-    }
-
-    #map {
-      height: 300px;
-      border-radius: 10px;
-      margin-bottom: 20px;
-    }
-
-    .filters {
-      margin: 20px 0;
-    }
-
-    select {
-      padding: 10px;
-      border-radius: 8px;
-      border: none;
-    }
-
-    .card {
-      background: rgba(255,255,255,0.05);
-      padding: 15px;
-      margin: 10px 0;
-      border-radius: 10px;
-      border-left: 5px solid gray;
-    }
-
-    .CRITICAL { border-left-color: red; }
-    .HIGH { border-left-color: orange; }
-    .LOW { border-left-color: green; }
-
-    button {
-      margin-top: 10px;
-      padding: 5px 10px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-
-    .resolve {
-      background: #00f5ff;
-    }
-  </style>
-</head>
-
-<body>
-
-<h1>🚨 NexPath Emergency Control Room</h1>
-
-<!-- 🌍 GLOBAL MAP -->
-<h2>🌍 Global Live Map</h2>
-<div id="map"></div>
-
-<div class="filters">
-  <select id="filter" onchange="loadData()">
-    <option value="ALL">All</option>
-    <option value="CRITICAL">CRITICAL</option>
-    <option value="HIGH">HIGH</option>
-    <option value="LOW">LOW</option>
-  </select>
-</div>
-
-<div id="list"></div>
-
-<script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirestore, collection, onSnapshot, updateDoc, doc } 
 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
@@ -103,12 +19,20 @@ let markers = [];
 
 const list = document.getElementById("list");
 
-// 🌍 INIT MAP
+// 🌍 MAP
 const map = L.map('map').setView([20, 0], 2);
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: 'NexPath Global Map'
 }).addTo(map);
+
+// 🔊 ALERT SOUND
+const alertSound = new Audio("https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg");
+
+// 📱 NOTIFICATION PERMISSION
+if ("Notification" in window) {
+  Notification.requestPermission();
+}
 
 // 🧠 RENDER SYSTEM
 function render(data) {
@@ -136,20 +60,50 @@ function render(data) {
   });
 }
 
-// 🔄 REALTIME DATA
+// 🚨 SMART ALERT ENGINE
+function triggerAlert(item) {
+
+  // 🔊 SOUND
+  alertSound.play();
+
+  // 📱 BROWSER NOTIFICATION
+  if (Notification.permission === "granted") {
+    new Notification("🚨 CRITICAL ALERT", {
+      body: item.message,
+    });
+  }
+
+  // ⚡ VISUAL FOCUS
+  document.body.style.border = "5px solid red";
+  setTimeout(() => {
+    document.body.style.border = "none";
+  }, 2000);
+}
+
+// 🔄 REAL-TIME DATA
 onSnapshot(collection(db, "requests"), (snapshot) => {
-  allData = snapshot.docs.map(doc => ({
+
+  const newData = snapshot.docs.map(doc => ({
     id: doc.id,
     ...doc.data()
   }));
 
+  // 🚨 CHECK FOR NEW CRITICAL CASES
+  newData.forEach(item => {
+    if (item.priority === "CRITICAL") {
+      triggerAlert(item);
+    }
+  });
+
+  allData = newData;
+
   render(allData);
 
-  // 🧹 CLEAR OLD MARKERS
+  // 🧹 CLEAR MAP MARKERS
   markers.forEach(m => map.removeLayer(m));
   markers = [];
 
-  // 📍 ADD MAP MARKERS
+  // 📍 MAP MARKERS
   allData.forEach(item => {
     if (item.location && item.location.lat) {
 
@@ -164,16 +118,9 @@ onSnapshot(collection(db, "requests"), (snapshot) => {
       markers.push(marker);
     }
   });
-
-  // 🚨 ALERT CHECK
-  allData.forEach(item => {
-    if (item.priority === "CRITICAL") {
-      console.log("🚨 CRITICAL:", item.message);
-    }
-  });
 });
 
-// FILTER SYSTEM
+// FILTER
 window.loadData = function () {
   const value = document.getElementById("filter").value;
 
@@ -184,7 +131,7 @@ window.loadData = function () {
   }
 };
 
-// RESOLVE SYSTEM
+// RESOLVE
 window.resolve = async function (id) {
   await updateDoc(doc(db, "requests", id), {
     status: "resolved"
@@ -192,7 +139,3 @@ window.resolve = async function (id) {
 
   alert("Request resolved ✔");
 };
-</script>
-
-</body>
-</html>
