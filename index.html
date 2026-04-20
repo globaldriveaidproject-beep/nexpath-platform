@@ -1,91 +1,15 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>NexPath AI</title>
-</head>
-
-<body style="font-family:Arial;background:#0f172a;color:white;text-align:center;padding:40px">
-
-<h1>🌍 NexPath AI</h1>
-<p>Global Humanitarian System</p>
-
-<textarea id="input" placeholder="Describe your situation..." style="width:300px;height:120px"></textarea>
-
-<br><br>
-
-<button onclick="submitRequest()">Submit Request</button>
-
-<p id="output"></p>
-
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, addDoc } 
-from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyDZuksXvvht9xPUTX32uOQx7h8ODvuRwJo",
-  authDomain: "nexpath-platform.firebaseapp.com",
-  projectId: "nexpath-platform",
-  storageBucket: "nexpath-platform.firebasestorage.app",
-  messagingSenderId: "1094642467861",
-  appId: "1:1094642467861:web:a60226b4d96b57a2c8fa1c"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-// 🌍 MAIN REQUEST ENGINE
 window.submitRequest = async function () {
   let text = document.getElementById("input").value.toLowerCase();
 
   let priority = "LOW";
   let tags = [];
+  let category = "General";
 
-  // 🟥 CRITICAL CASES
-  if (
-    text.includes("shelter") ||
-    text.includes("no place") ||
-    text.includes("homeless") ||
-    text.includes("no home")
-  ) {
-    priority = "CRITICAL";
-    tags.push("shelter");
-  }
-
-  if (text.includes("child")) {
-    priority = "CRITICAL";
-    tags.push("child");
-  }
-
-  // 🟧 HIGH PRIORITY
-  if (text.includes("food")) {
+  // PRIORITY DETECTION
+  if (text.includes("urgent") || text.includes("asap") || text.includes("emergency")) {
     priority = "HIGH";
-    tags.push("food");
   }
 
-  // 🟢 DEFAULT
-  if (tags.length === 0) {
-    tags.push("general");
-  }
-
-  try {
-    await addDoc(collection(db, "requests"), {
-      message: text,
-      priority: priority,
-      status: "new",
-      tags: tags,
-      createdAt: new Date()
-    });
-
-    document.getElementById("output").innerText =
-      "Request sent ✔ Priority: " + priority;
-
-  } catch (error) {
-    document.getElementById("output").innerText =
-      "❌ Error sending request";
-  }
-};
-</script>
-
-</body>
-</html>
+  // CATEGORY DETECTION
+  if (text.includes("food") || text.includes("hungry")) {
+    category = "Fo
