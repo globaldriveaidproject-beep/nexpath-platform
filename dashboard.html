@@ -29,21 +29,57 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 // 🔊 ALERT SOUND
 const alertSound = new Audio("https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg");
 
-// 📱 NOTIFICATION PERMISSION
+// 📱 NOTIFICATIONS
 if ("Notification" in window) {
   Notification.requestPermission();
 }
 
-// 🧠 RENDER SYSTEM
+// 🧠 AI SEVERITY SCORE ENGINE
+function calculateScore(item) {
+  let score = 0;
+
+  if (item.priority === "CRITICAL") score += 100;
+  if (item.priority === "HIGH") score += 60;
+  if (item.priority === "LOW") score += 20;
+
+  if (item.category === "Medical") score += 30;
+  if (item.category === "Shelter") score += 25;
+  if (item.category === "Food Aid") score += 15;
+
+  return score;
+}
+
+// 🤝 SIMPLE VOLUNTEER MATCHING (SIMULATED)
+function assignVolunteer(item) {
+  const volunteers = ["Team A", "Team B", "Team C"];
+  const index = Math.floor(Math.random() * volunteers.length);
+  return volunteers[index];
+}
+
+// 🚨 ALERT SYSTEM
+function triggerAlert(item) {
+  alertSound.play();
+
+  if (Notification.permission === "granted") {
+    new Notification("🚨 CRITICAL CASE", {
+      body: item.message,
+    });
+  }
+
+  document.body.style.border = "5px solid red";
+  setTimeout(() => document.body.style.border = "none", 2000);
+}
+
+// 🧠 RENDER UI
 function render(data) {
   list.innerHTML = "";
 
-  data.sort((a,b) => {
-    const order = { "CRITICAL": 1, "HIGH": 2, "LOW": 3 };
-    return order[a.priority] - order[b.priority];
-  });
+  data.sort((a, b) => calculateScore(b) - calculateScore(a));
 
   data.forEach(item => {
+
+    const volunteer = assignVolunteer(item);
+
     const div = document.createElement("div");
     div.className = "card " + item.priority;
 
@@ -51,7 +87,9 @@ function render(data) {
       <b>Message:</b> ${item.message} <br>
       <b>Priority:</b> ${item.priority} <br>
       <b>Category:</b> ${item.category} <br>
-      <b>Location:</b> ${item.location} <br><br>
+      <b>Location:</b> ${item.location} <br>
+      <b>AI Score:</b> ${calculateScore(item)} <br>
+      <b>Assigned Team:</b> ${volunteer} <br><br>
 
       <button class="resolve" onclick="resolve('${item.id}')">Mark Resolved</button>
     `;
@@ -60,27 +98,7 @@ function render(data) {
   });
 }
 
-// 🚨 SMART ALERT ENGINE
-function triggerAlert(item) {
-
-  // 🔊 SOUND
-  alertSound.play();
-
-  // 📱 BROWSER NOTIFICATION
-  if (Notification.permission === "granted") {
-    new Notification("🚨 CRITICAL ALERT", {
-      body: item.message,
-    });
-  }
-
-  // ⚡ VISUAL FOCUS
-  document.body.style.border = "5px solid red";
-  setTimeout(() => {
-    document.body.style.border = "none";
-  }, 2000);
-}
-
-// 🔄 REAL-TIME DATA
+// 🔄 REALTIME DATA
 onSnapshot(collection(db, "requests"), (snapshot) => {
 
   const newData = snapshot.docs.map(doc => ({
@@ -88,7 +106,7 @@ onSnapshot(collection(db, "requests"), (snapshot) => {
     ...doc.data()
   }));
 
-  // 🚨 CHECK FOR NEW CRITICAL CASES
+  // 🚨 ALERT CHECK
   newData.forEach(item => {
     if (item.priority === "CRITICAL") {
       triggerAlert(item);
@@ -99,20 +117,19 @@ onSnapshot(collection(db, "requests"), (snapshot) => {
 
   render(allData);
 
-  // 🧹 CLEAR MAP MARKERS
+  // 🌍 MAP UPDATE
   markers.forEach(m => map.removeLayer(m));
   markers = [];
 
-  // 📍 MAP MARKERS
   allData.forEach(item => {
     if (item.location && item.location.lat) {
-
       const marker = L.marker([item.location.lat, item.location.lng])
         .addTo(map)
         .bindPopup(`
           <b>${item.priority}</b><br>
           ${item.category}<br>
-          ${item.message}
+          ${item.message}<br>
+          AI Score: ${calculateScore(item)}
         `);
 
       markers.push(marker);
@@ -137,5 +154,5 @@ window.resolve = async function (id) {
     status: "resolved"
   });
 
-  alert("Request resolved ✔");
+  alert("Case resolved ✔");
 };
