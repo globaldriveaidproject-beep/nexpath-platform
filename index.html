@@ -3,6 +3,7 @@
 <head>
   <title>NexPath Platform</title>
 </head>
+
 <body style="font-family:Arial; background:#0f172a; color:white; text-align:center; padding:40px;">
 
   <h1>🌍 NexPath AI Platform</h1>
@@ -36,8 +37,39 @@
       }
 
       document.getElementById("output").innerText = output;
+
+      // Save to Firebase (if connected)
+      if (window.saveRequest) {
+        window.saveRequest(text);
+      }
     }
   </script>
 
+  <!-- Firebase (ADD YOUR CONFIG HERE LATER IF NEEDED) -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDZuksXvvht9xPUTX32uOQx7h8ODvuRwJo",
+  authDomain: "nexpath-platform.firebaseapp.com",
+  projectId: "nexpath-platform",
+  storageBucket: "nexpath-platform.firebasestorage.app",
+  messagingSenderId: "1094642467861",
+  appId: "1:1094642467861:web:a60226b4d96b57a2c8fa1c",
+  measurementId: "G-MM9HJ8LJBW"
+};
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    window.saveRequest = async function(text) {
+      await addDoc(collection(db, "requests"), {
+        message: text,
+        time: new Date()
+      });
+    };
+  </script>
+
 </body>
-</html>
+</html>       
