@@ -1,5 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>NexPath Control Room</title>
+</head>
+
+<body style="font-family:Arial;background:#0f172a;color:white;padding:20px">
+
+<h1>🚨 NexPath Emergency Control Room</h1>
+
+<p>Live global humanitarian requests</p>
+
+<!-- FILTERS -->
+<div style="margin:20px 0;">
+  <button onclick="filter('ALL')">All</button>
+  <button onclick="filter('CRITICAL')">Critical</button>
+  <button onclick="filter('HIGH')">High</button>
+  <button onclick="filter('LOW')">Low</button>
+</div>
+
+<!-- DASHBOARD -->
+<div id="list"></div>
+
+<script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, onSnapshot, updateDoc, doc } 
+import { getFirestore, collection, getDocs } 
 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -14,145 +38,67 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-let allData = [];
-let markers = [];
+let allRequests = [];
 
-const list = document.getElementById("list");
+// 🔄 LOAD DATA
+async function loadData() {
+  const snap = await getDocs(collection(db, "requests"));
 
-// 🌍 MAP
-const map = L.map('map').setView([20, 0], 2);
+  allRequests = [];
 
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution: 'NexPath Global Map'
-}).addTo(map);
+  snap.forEach(doc => {
+    allRequests.push(doc.data());
+  });
 
-// 🔊 ALERT SOUND
-const alertSound = new Audio("https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg");
-
-// 📱 NOTIFICATIONS
-if ("Notification" in window) {
-  Notification.requestPermission();
+  render(allRequests);
 }
 
-// 🧠 AI SEVERITY SCORE ENGINE
-function calculateScore(item) {
-  let score = 0;
-
-  if (item.priority === "CRITICAL") score += 100;
-  if (item.priority === "HIGH") score += 60;
-  if (item.priority === "LOW") score += 20;
-
-  if (item.category === "Medical") score += 30;
-  if (item.category === "Shelter") score += 25;
-  if (item.category === "Food Aid") score += 15;
-
-  return score;
-}
-
-// 🤝 SIMPLE VOLUNTEER MATCHING (SIMULATED)
-function assignVolunteer(item) {
-  const volunteers = ["Team A", "Team B", "Team C"];
-  const index = Math.floor(Math.random() * volunteers.length);
-  return volunteers[index];
-}
-
-// 🚨 ALERT SYSTEM
-function triggerAlert(item) {
-  alertSound.play();
-
-  if (Notification.permission === "granted") {
-    new Notification("🚨 CRITICAL CASE", {
-      body: item.message,
-    });
-  }
-
-  document.body.style.border = "5px solid red";
-  setTimeout(() => document.body.style.border = "none", 2000);
-}
-
-// 🧠 RENDER UI
+// 📊 RENDER DASHBOARD
 function render(data) {
+  const list = document.getElementById("list");
   list.innerHTML = "";
 
-  data.sort((a, b) => calculateScore(b) - calculateScore(a));
+  data.reverse().forEach(r => {
 
-  data.forEach(item => {
+    let color = "white";
 
-    const volunteer = assignVolunteer(item);
+    if (r.priority === "CRITICAL") color = "red";
+    else if (r.priority === "HIGH") color = "orange";
+    else color = "lightgreen";
 
-    const div = document.createElement("div");
-    div.className = "card " + item.priority;
-
-    div.innerHTML = `
-      <b>Message:</b> ${item.message} <br>
-      <b>Priority:</b> ${item.priority} <br>
-      <b>Category:</b> ${item.category} <br>
-      <b>Location:</b> ${item.location} <br>
-      <b>AI Score:</b> ${calculateScore(item)} <br>
-      <b>Assigned Team:</b> ${volunteer} <br><br>
-
-      <button class="resolve" onclick="resolve('${item.id}')">Mark Resolved</button>
+    list.innerHTML += `
+      <div style="
+        border:1px solid ${color};
+        padding:10px;
+        margin:10px;
+        border-radius:10px;
+      ">
+        <h3 style="color:${color}">${r.priority}</h3>
+        <p><b>Message:</b> ${r.message}</p>
+        <p><b>Category:</b> ${r.category}</p>
+        <p><b>Email:</b> ${r.email}</p>
+        <p><b>Status:</b> ${r.status}</p>
+        <p><b>Time:</b> ${new Date(r.createdAt).toLocaleString()}</p>
+      </div>
     `;
-
-    list.appendChild(div);
   });
 }
 
-// 🔄 REALTIME DATA
-onSnapshot(collection(db, "requests"), (snapshot) => {
-
-  const newData = snapshot.docs.map(doc => ({
-    id: doc.id,
-    ...doc.data()
-  }));
-
-  // 🚨 ALERT CHECK
-  newData.forEach(item => {
-    if (item.priority === "CRITICAL") {
-      triggerAlert(item);
-    }
-  });
-
-  allData = newData;
-
-  render(allData);
-
-  // 🌍 MAP UPDATE
-  markers.forEach(m => map.removeLayer(m));
-  markers = [];
-
-  allData.forEach(item => {
-    if (item.location && item.location.lat) {
-      const marker = L.marker([item.location.lat, item.location.lng])
-        .addTo(map)
-        .bindPopup(`
-          <b>${item.priority}</b><br>
-          ${item.category}<br>
-          ${item.message}<br>
-          AI Score: ${calculateScore(item)}
-        `);
-
-      markers.push(marker);
-    }
-  });
-});
-
-// FILTER
-window.loadData = function () {
-  const value = document.getElementById("filter").value;
-
-  if (value === "ALL") {
-    render(allData);
+// 🎯 FILTER SYSTEM
+window.filter = function(type) {
+  if (type === "ALL") {
+    render(allRequests);
   } else {
-    render(allData.filter(x => x.priority === value));
+    let filtered = allRequests.filter(r => r.priority === type);
+    render(filtered);
   }
 };
 
-// RESOLVE
-window.resolve = async function (id) {
-  await updateDoc(doc(db, "requests", id), {
-    status: "resolved"
-  });
+// 🚀 AUTO LOAD
+loadData();
+setInterval(loadData, 5000);
 
-  alert("Case resolved ✔");
-};
+</script>
+
+</body>
+</html>
