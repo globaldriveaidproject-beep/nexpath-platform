@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<title>NexPath Dashboard</title>
+<title>NexPath Live Dashboard</title>
 
 <style>
   body {
@@ -14,23 +14,37 @@
   }
 
   h1 {
-    color: #00f5ff;
     text-align: center;
+    color: #00f5ff;
   }
 
   .card {
     background: rgba(255,255,255,0.05);
-    margin: 10px;
+    margin: 10px 0;
     padding: 15px;
     border-radius: 12px;
-    border-left: 4px solid #00f5ff;
+    border-left: 5px solid gray;
+  }
+
+  .CRITICAL { border-left-color: red; }
+  .HIGH { border-left-color: orange; }
+  .URGENT { border-left-color: #ff4d4d; }
+  .NORMAL { border-left-color: #00f5ff; }
+
+  .tag {
+    font-size: 12px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    background: rgba(255,255,255,0.1);
+    display: inline-block;
+    margin-bottom: 5px;
   }
 </style>
 </head>
 
 <body>
 
-<h1>📊 NexPath Live Dashboard</h1>
+<h1>📊 NexPath Operations Dashboard</h1>
 
 <div id="data"></div>
 
@@ -41,4 +55,62 @@ import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/fi
 const firebaseConfig = {
   apiKey: "AIzaSyDZuksXvvht9xPUTX32uOQx7h8ODvuRwJo",
   authDomain: "nexpath-platform.firebaseapp.com",
-  projectId: "
+  projectId: "nexpath-platform",
+  storageBucket: "nexpath-platform.firebasestorage.app",
+  messagingSenderId: "1094642467861",
+  appId: "1:1094642467861:web:a60226b4d96b57a2c8fa1c"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const container = document.getElementById("data");
+
+function detectPriority(message) {
+  message = message.toLowerCase();
+
+  if (message.includes("shelter") || message.includes("homeless")) return "CRITICAL";
+  if (message.includes("food")) return "HIGH";
+  if (message.includes("child")) return "URGENT";
+  return "NORMAL";
+}
+
+onSnapshot(collection(db, "requests"), (snapshot) => {
+  container.innerHTML = "";
+
+  let items = [];
+
+  snapshot.forEach(doc => {
+    let data = doc.data();
+    let priority = detectPriority(data.message);
+
+    items.push({
+      message: data.message,
+      time: data.time,
+      priority: priority
+    });
+  });
+
+  // Sort CRITICAL first
+  items.sort((a, b) => {
+    const order = { "CRITICAL": 1, "URGENT": 2, "HIGH": 3, "NORMAL": 4 };
+    return order[a.priority] - order[b.priority];
+  });
+
+  items.forEach(item => {
+    let div = document.createElement("div");
+    div.className = `card ${item.priority}`;
+
+    div.innerHTML = `
+      <div class="tag">${item.priority}</div><br>
+      <strong>${item.message}</strong><br>
+      <small>${new Date(item.time.seconds * 1000).toLocaleString()}</small>
+    `;
+
+    container.appendChild(div);
+  });
+});
+</script>
+
+</body>
+</html>
