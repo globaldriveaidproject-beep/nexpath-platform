@@ -7,63 +7,47 @@
     body {
       margin: 0;
       font-family: Arial;
-      background: #020617;
+      background: #0b1220;
       color: white;
+      padding: 20px;
     }
 
     h1 {
-      text-align: center;
-      padding: 20px;
       color: #00f5ff;
     }
 
-    .stats {
-      display: flex;
-      justify-content: space-around;
-      padding: 20px;
+    .filters {
+      margin: 20px 0;
+    }
+
+    select {
+      padding: 10px;
+      border-radius: 8px;
+      border: none;
     }
 
     .card {
       background: rgba(255,255,255,0.05);
-      padding: 20px;
-      border-radius: 15px;
-      text-align: center;
-      width: 25%;
-    }
-
-    .card h2 {
-      margin: 0;
-      font-size: 28px;
-      color: #00f5ff;
-    }
-
-    .requests {
-      padding: 20px;
-    }
-
-    .request {
-      background: rgba(255,255,255,0.05);
-      margin-bottom: 15px;
       padding: 15px;
+      margin: 10px 0;
       border-radius: 10px;
+      border-left: 5px solid gray;
     }
 
-    .critical { border-left: 5px solid red; }
-    .high { border-left: 5px solid orange; }
-    .low { border-left: 5px solid green; }
+    .CRITICAL { border-left-color: red; }
+    .HIGH { border-left-color: orange; }
+    .LOW { border-left-color: green; }
 
     button {
       margin-top: 10px;
-      padding: 8px 15px;
+      padding: 5px 10px;
       border: none;
-      border-radius: 8px;
-      background: #00f5ff;
+      border-radius: 6px;
       cursor: pointer;
-      font-weight: bold;
     }
 
-    button:hover {
-      background: #00c2cc;
+    .resolve {
+      background: #00f5ff;
     }
   </style>
 </head>
@@ -72,34 +56,21 @@
 
 <h1>🚨 NexPath Emergency Control Room</h1>
 
-<div class="stats">
-  <div class="card">
-    <h2 id="total">0</h2>
-    <p>Total Requests</p>
-  </div>
-
-  <div class="card">
-    <h2 id="critical">0</h2>
-    <p>Critical Cases</p>
-  </div>
-
-  <div class="card">
-    <h2 id="resolved">0</h2>
-    <p>Resolved</p>
-  </div>
+<div class="filters">
+  <select id="filter" onchange="loadData()">
+    <option value="ALL">All</option>
+    <option value="CRITICAL">CRITICAL</option>
+    <option value="HIGH">HIGH</option>
+    <option value="LOW">LOW</option>
+  </select>
 </div>
 
-<div class="requests" id="requests"></div>
+<div id="list"></div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import {
-  getFirestore,
-  collection,
-  onSnapshot,
-  updateDoc,
-  doc
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, collection, onSnapshot, updateDoc, doc } 
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDZuksXvvht9xPUTX32uOQx7h8ODvuRwJo",
@@ -113,44 +84,63 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-const requestsDiv = document.getElementById("requests");
+let allData = [];
 
-onSnapshot(collection(db, "requests"), (snapshot) => {
-  requestsDiv.innerHTML = "";
+const list = document.getElementById("list");
 
-  let total = 0;
-  let critical = 0;
-  let resolved = 0;
+function render(data) {
+  list.innerHTML = "";
 
-  snapshot.forEach((docSnap) => {
-    const data = docSnap.data();
-    total++;
-
-    if (data.priority === "CRITICAL") critical++;
-    if (data.status === "resolved") resolved++;
-
-    const div = document.createElement("div");
-    div.className = "request " + data.priority.toLowerCase();
-
-    div.innerHTML = `
-      <strong>${data.priority}</strong><br>
-      ${data.message}<br>
-      ${new Date(data.createdAt.seconds * 1000).toLocaleString()}<br>
-      <button onclick="resolve('${docSnap.id}')">Mark Resolved</button>
-    `;
-
-    requestsDiv.appendChild(div);
+  data.sort((a,b) => {
+    const order = { "CRITICAL": 1, "HIGH": 2, "LOW": 3 };
+    return order[a.priority] - order[b.priority];
   });
 
-  document.getElementById("total").innerText = total;
-  document.getElementById("critical").innerText = critical;
-  document.getElementById("resolved").innerText = resolved;
+  data.forEach(item => {
+    const div = document.createElement("div");
+    div.className = "card " + item.priority;
+
+    div.innerHTML = `
+      <b>Message:</b> ${item.message} <br>
+      <b>Priority:</b> ${item.priority} <br>
+      <b>Category:</b> ${item.category} <br>
+      <b>Location:</b> ${item.location} <br><br>
+
+      <button class="resolve" onclick="resolve('${item.id}')">Mark Resolved</button>
+    `;
+
+    list.appendChild(div);
+  });
+}
+
+// 🔄 REALTIME FIREBASE LISTENER
+onSnapshot(collection(db, "requests"), (snapshot) => {
+  allData = snapshot.docs.map(doc => ({
+    id: doc.id,
+    ...doc.data()
+  }));
+
+  render(allData);
 });
 
+// FILTER SYSTEM
+window.loadData = function () {
+  const value = document.getElementById("filter").value;
+
+  if (value === "ALL") {
+    render(allData);
+  } else {
+    render(allData.filter(x => x.priority === value));
+  }
+};
+
+// RESOLVE SYSTEM
 window.resolve = async function (id) {
   await updateDoc(doc(db, "requests", id), {
     status: "resolved"
   });
+
+  alert("Request resolved ✔");
 };
 </script>
 
