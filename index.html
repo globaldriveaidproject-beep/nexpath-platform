@@ -1,28 +1,7 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>NexPath AI</title>
-</head>
-
-<body style="font-family:Arial;background:#0f172a;color:white;text-align:center;padding:40px">
-
-<h1>🌍 NexPath AI</h1>
-<p>Global Humanitarian System</p>
-
-<textarea id="input" placeholder="Describe your situation..." style="width:300px;height:120px"></textarea>
-
-<br><br>
-
-<button onclick="submitRequest()">Submit Request</button>
-
-<p id="output"></p>
-
-<script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirestore, collection, addDoc } 
 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-// 🔥 Firebase setup
 const firebaseConfig = {
   apiKey: "AIzaSyDZuksXvvht9xPUTX32uOQx7h8ODvuRwJo",
   authDomain: "nexpath-platform.firebaseapp.com",
@@ -35,16 +14,17 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// 🌍 MAIN SYSTEM
 window.submitRequest = async function () {
 
   let text = document.getElementById("input").value.toLowerCase();
+  let email = document.getElementById("email").value;
+  let donation = document.getElementById("donation").value;
 
   let priority = "LOW";
   let tags = [];
   let category = "General";
 
-  // 🚨 PRIORITY DETECTION
+  // 🚨 PRIORITY
   if (text.includes("urgent") || text.includes("emergency") || text.includes("asap")) {
     priority = "HIGH";
   }
@@ -71,36 +51,35 @@ window.submitRequest = async function () {
     tags.push("shelter");
   }
 
-  // 🌍 GLOBAL LOCATION (simple version)
-  let location = "Unknown";
-
-  if (text.includes("dubai")) location = "Dubai";
-  else if (text.includes("india")) location = "India";
-  else if (text.includes("usa")) location = "USA";
-  else if (text.includes("uk")) location = "UK";
-  else location = "Global / Not specified";
-
   try {
     await addDoc(collection(db, "requests"), {
       message: text,
+      email: email || "anonymous",
       priority: priority,
       category: category,
       tags: tags,
-      location: location,
       status: "pending",
       createdAt: Date.now()
     });
 
+    if (donation && donation.trim() !== "") {
+      await addDoc(collection(db, "donors"), {
+        email: email || "anonymous",
+        amount: donation,
+        message: text,
+        createdAt: Date.now()
+      });
+    }
+
     document.getElementById("input").value = "";
+    document.getElementById("email").value = "";
+    document.getElementById("donation").value = "";
+
     document.getElementById("output").innerText =
       "🌍 Request submitted successfully!";
-  } catch (e) {
+
+  } catch (error) {
     document.getElementById("output").innerText =
       "❌ Error submitting request";
   }
 };
-
-</script>
-
-</body>
-</html>
