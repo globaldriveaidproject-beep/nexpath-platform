@@ -1,75 +1,86 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>NexPath Admin Panel</title>
+<meta charset="UTF-8">
+<title>NexPath Admin</title>
+
+<style>
+  body {
+    margin: 0;
+    font-family: Arial;
+    background: #020617;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+
+  .box {
+    background: rgba(255,255,255,0.05);
+    padding: 30px;
+    border-radius: 15px;
+    text-align: center;
+    width: 300px;
+  }
+
+  input {
+    width: 90%;
+    padding: 10px;
+    margin-top: 15px;
+    border-radius: 10px;
+    border: none;
+    outline: none;
+  }
+
+  button {
+    margin-top: 15px;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 10px;
+    background: #00f5ff;
+    cursor: pointer;
+    font-weight: bold;
+  }
+
+  button:hover {
+    background: #00c2cc;
+  }
+
+  h2 {
+    color: #00f5ff;
+  }
+</style>
 </head>
 
-<body style="font-family:Arial;background:#020617;color:white;text-align:center;padding:40px">
+<body>
 
-<h1>🔐 NexPath Admin Control Panel</h1>
+<div class="box">
+  <h2>🔐 NexPath Admin Panel</h2>
+  <p>Enter Admin Key</p>
 
-<input id="pass" type="password" placeholder="Enter Admin Key" />
-<br><br>
+  <input type="password" id="key" placeholder="Admin key">
 
-<button onclick="login()">Login</button>
+  <button onclick="login()">Login</button>
 
-<div id="panel" style="display:none;margin-top:30px;"></div>
+  <p id="msg"></p>
+</div>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, onSnapshot, updateDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+<script>
+function login() {
+  const key = document.getElementById("key").value;
 
-const firebaseConfig = {
-  apiKey: "AIzaSyDZuksXvvht9xPUTX32uOQx7h8ODvuRwJo",
-  authDomain: "nexpath-platform.firebaseapp.com",
-  projectId: "nexpath-platform",
-  storageBucket: "nexpath-platform.firebasestorage.app",
-  messagingSenderId: "1094642467861",
-  appId: "1:1094642467861:web:a60226b4d96b57a2c8fa1c"
-};
+  if (key === "nexpath-admin-2026") {
+    document.getElementById("msg").innerText = "✔ Access granted...";
+    
+    setTimeout(() => {
+      window.location.href = "dashboard.html";
+    }, 1000);
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-const panel = document.getElementById("panel");
-
-// SIMPLE LOGIN (replace later with real auth)
-window.login = function () {
-  let key = document.getElementById("pass").value;
-
-  if (key === "nexpath-admin") {
-    panel.style.display = "block";
-    loadRequests();
   } else {
-    alert("Wrong access key");
+    document.getElementById("msg").innerText = "❌ Invalid admin key";
   }
-};
-
-function loadRequests() {
-  onSnapshot(collection(db, "requests"), (snapshot) => {
-    panel.innerHTML = "<h2>Live Cases</h2>";
-
-    snapshot.forEach(docSnap => {
-      let data = docSnap.data();
-      let id = docSnap.id;
-
-      let div = document.createElement("div");
-      div.style = "background:#111827;margin:10px;padding:10px;border-radius:10px";
-
-      div.innerHTML = `
-        <strong>${data.message}</strong><br><br>
-        <button onclick="assign('${id}')">Assign Volunteer</button>
-      `;
-
-      panel.appendChild(div);
-    });
-  });
 }
-
-// Assign case
-window.assign = async function(id) {
-  alert("Assigned to volunteer ✔ (simulation layer)");
-};
 </script>
 
 </body>
