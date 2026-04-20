@@ -21,22 +21,25 @@
   <script>
     function analyze() {
       let text = document.getElementById("input").value.toLowerCase();
-      let output = "";
+      let output = [];
 
-      if (text.includes("no place") || text.includes("shelter")) {
-        output = "🟥 HIGH PRIORITY: Emergency shelter needed.";
-      } 
-      else if (text.includes("food")) {
-        output = "🟧 MEDIUM PRIORITY: Food support needed.";
-      } 
-      else if (text.includes("child")) {
-        output = "🟥 URGENT: Child support needed immediately.";
-      } 
-      else {
-        output = "🟢 Request received. Community system activated.";
-      }
+if (text.includes("shelter") || text.includes("no place")) {
+  output.push("🟥 HIGH PRIORITY: Emergency shelter needed.");
+}
 
-      document.getElementById("output").innerText = output;
+if (text.includes("food")) {
+  output.push("🟧 MEDIUM PRIORITY: Food support needed.");
+}
+
+if (text.includes("child")) {
+  output.push("🟥 URGENT: Child support needed immediately.");
+}
+
+if (output.length === 0) {
+  output.push("🟢 Request received. Community system activated.");
+}
+
+document.getElementById("output").innerText = output.join("\n");
 
       // Save to Firebase (if connected)
       if (window.saveRequest) {
@@ -44,32 +47,31 @@
       }
     }
   </script>
+  
+<!-- Firebase (ADD YOUR CONFIG HERE) -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-  <!-- Firebase (ADD YOUR CONFIG HERE LATER IF NEEDED) -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  const firebaseConfig = {
+    apiKey: "AIzaSyDZuksXvvht9xPUTX32uOQx7h8ODvuRwJo",
+    authDomain: "nexpath-platform.firebaseapp.com",
+    projectId: "nexpath-platform",
+    storageBucket: "nexpath-platform.firebasestorage.app",
+    messagingSenderId: "1094642467861",
+    appId: "1:1094642467861:web:a60226b4d96b57a2c8fa1c"
+  };
 
-const firebaseConfig = {
-  apiKey: "AIzaSyDZuksXvvht9xPUTX32uOQx7h8ODvuRwJo",
-  authDomain: "nexpath-platform.firebaseapp.com",
-  projectId: "nexpath-platform",
-  storageBucket: "nexpath-platform.firebasestorage.app",
-  messagingSenderId: "1094642467861",
-  appId: "1:1094642467861:web:a60226b4d96b57a2c8fa1c",
-  measurementId: "G-MM9HJ8LJBW"
-};
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-
-    window.saveRequest = async function(text) {
-      await addDoc(collection(db, "requests"), {
-        message: text,
-        time: new Date()
-      });
-    };
-  </script>
+  window.saveRequest = async function(text) {
+    await addDoc(collection(db, "requests"), {
+      message: text,
+      time: new Date()
+    });
+  };
+</script>
 
 </body>
-</html>       
+</html>
