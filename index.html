@@ -1,15 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>NexPath AI</title>
+</head>
+
+<body style="font-family:Arial;background:#0f172a;color:white;text-align:center;padding:40px">
+
+<h1>🌍 NexPath AI</h1>
+<p>Global Humanitarian System</p>
+
+<textarea id="input" placeholder="Describe your situation..." style="width:300px;height:120px"></textarea>
+
+<br><br>
+
+<button onclick="submitRequest()">Submit Request</button>
+
+<p id="output"></p>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, addDoc } 
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+// 🔥 Firebase setup
+const firebaseConfig = {
+  apiKey: "AIzaSyDZuksXvvht9xPUTX32uOQx7h8ODvuRwJo",
+  authDomain: "nexpath-platform.firebaseapp.com",
+  projectId: "nexpath-platform",
+  storageBucket: "nexpath-platform.firebasestorage.app",
+  messagingSenderId: "1094642467861",
+  appId: "1:1094642467861:web:a60226b4d96b57a2c8fa1c"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// 🌍 MAIN SYSTEM
 window.submitRequest = async function () {
+
   let text = document.getElementById("input").value.toLowerCase();
 
   let priority = "LOW";
   let tags = [];
   let category = "General";
 
-  // PRIORITY DETECTION
-  if (text.includes("urgent") || text.includes("asap") || text.includes("emergency")) {
+  // 🚨 PRIORITY DETECTION
+  if (text.includes("urgent") || text.includes("emergency") || text.includes("asap")) {
     priority = "HIGH";
   }
 
-  // CATEGORY DETECTION
+  // 🟧 CATEGORY SYSTEM
   if (text.includes("food") || text.includes("hungry")) {
-    category = "Fo
+    category = "Food Aid";
+    tags.push("food");
+  }
+
+  if (text.includes("water")) {
+    category = "Water Aid";
+    tags.push("water");
+  }
+
+  if (text.includes("medical") || text.includes("sick") || text.includes("hospital")) {
+    category = "Medical";
+    priority = "HIGH";
+    tags.push("medical");
+  }
+
+  if (text.includes("shelter") || text.includes("homeless")) {
+    category = "Shelter";
+    tags.push("shelter");
+  }
+
+  // 🌍 GLOBAL LOCATION (simple version)
+  let location = "Unknown";
+
+  if (text.includes("dubai")) location = "Dubai";
+  else if (text.includes("india")) location = "India";
+  else if (text.includes("usa")) location = "USA";
+  else if (text.includes("uk")) location = "UK";
+  else location = "Global / Not specified";
+
+  try {
+    await addDoc(collection(db, "requests"), {
+      message: text,
+      priority: priority,
+      category: category,
+      tags: tags,
+      location: location,
+      status: "pending",
+      createdAt: Date.now()
+    });
+
+    document.getElementById("input").value = "";
+    document.getElementById("output").innerText =
+      "🌍 Request submitted successfully!";
+  } catch (e) {
+    document.getElementById("output").innerText =
+      "❌ Error submitting request";
+  }
+};
+
+</script>
+
+</body>
+</html>
