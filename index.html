@@ -6,7 +6,7 @@
   <style>
     body {
       margin: 0;
-      font-family: Arial;
+      font-family: Arial, sans-serif;
       background: radial-gradient(circle at top, #0b1220, #000);
       color: white;
       overflow-x: hidden;
@@ -46,19 +46,12 @@
       cursor: pointer;
     }
 
-    .globe {
-      width: 400px;
-      height: 400px;
+    #globeViz {
+      width: 500px;
+      height: 500px;
       border-radius: 50%;
-      background: url('https://upload.wikimedia.org/wikipedia/commons/9/97/The_Earth_seen_from_Apollo_17.jpg');
-      background-size: cover;
-      box-shadow: 0 0 60px #3b82f6;
-      animation: rotate 20s linear infinite;
-    }
-
-    @keyframes rotate {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+      overflow: hidden;
+      box-shadow: 0 0 80px rgba(59,130,246,0.6);
     }
 
     .mission {
@@ -95,13 +88,14 @@
     <div class="title">Humanitarian Engine</div>
 
     <div class="subtitle">
-      AI-powered global humanitarian response system connecting people in crisis with immediate support.
+      Real-time AI humanitarian system mapping global crisis zones and connecting urgent human need with rapid response.
     </div>
 
-    <button class="btn">Submit Request</button>
+    <button class="btn">Enter System</button>
   </div>
 
-  <div class="globe"></div>
+  <!-- 3D GLOBE -->
+  <div id="globeViz"></div>
 
 </div>
 
@@ -112,7 +106,7 @@
     Mankind Global / Helping Hand Community founded by Tidimalo Konate.
   </p>
   <p>
-    We provide food, water, shelter, and medical aid worldwide.
+    We deliver food, water, shelter, and medical aid globally through AI-driven coordination.
   </p>
 </div>
 
@@ -122,6 +116,38 @@
   <textarea placeholder="Describe your situation..."></textarea>
   <button class="btn">Submit Request</button>
 </div>
+
+<!-- 3D GLOBE LIBRARY -->
+<script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
+<script src="https://unpkg.com/globe.gl"></script>
+
+<script>
+  const world = Globe()
+    (document.getElementById('globeViz'))
+    .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-night.jpg')
+    .bumpImageUrl('https://unpkg.com/three-globe/example/img/earth-topology.png')
+    .backgroundImageUrl('https://unpkg.com/three-globe/example/img/night-sky.png');
+
+  world.width(500);
+  world.height(500);
+
+  // 🌍 Global humanitarian nodes (demo)
+  const points = [
+    { lat: 25.276987, lng: 55.296249, size: 0.5, color: 'red', label: 'Dubai Request Zone' },
+    { lat: -1.2921, lng: 36.8219, size: 0.5, color: 'orange', label: 'Africa Aid Zone' },
+    { lat: 51.5072, lng: -0.1276, size: 0.5, color: 'blue', label: 'UK Hub' },
+    { lat: 40.7128, lng: -74.0060, size: 0.5, color: 'green', label: 'USA Network' }
+  ];
+
+  world
+    .pointsData(points)
+    .pointAltitude('size')
+    .pointColor('color')
+    .pointLabel('label');
+
+  world.controls().autoRotate = true;
+  world.controls().autoRotateSpeed = 0.6;
+</script>
 
 </body>
 </html>
