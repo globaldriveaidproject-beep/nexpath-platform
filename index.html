@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>NexPath AI Geo Intelligence</title>
+<title>NexPath AI Core System</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
@@ -10,7 +10,7 @@
 <style>
 body {
   margin: 0;
-  font-family: 'Orbitron', sans-serif;
+  font-family: Orbitron;
   background: black;
   color: white;
   overflow: hidden;
@@ -23,17 +23,33 @@ body {
   z-index: -1;
 }
 
+/* UI PANEL */
 .panel {
   position: absolute;
-  background: rgba(0,0,0,0.5);
+  background: rgba(0,0,0,0.55);
   border: 1px solid cyan;
-  padding: 20px;
-  border-radius: 15px;
+  padding: 15px;
+  border-radius: 12px;
   backdrop-filter: blur(10px);
 }
 
 .top-right { top: 20px; right: 20px; }
-.bottom-right { bottom: 20px; right: 20px; }
+.bottom-left { bottom: 20px; left: 20px; }
+
+.title {
+  color: cyan;
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
+.event {
+  margin: 5px 0;
+  font-size: 12px;
+}
+
+.critical { color: red; }
+.high { color: orange; }
+.low { color: lime; }
 
 </style>
 </head>
@@ -42,105 +58,119 @@ body {
 
 <div id="globe-container"></div>
 
+<!-- UI -->
 <div class="panel top-right">
-  🌍 NexPath AI LIVE
+  <div class="title">🌍 NexPath AI CORE</div>
+  Impact: <span id="impact">157</span><br>
+  Aid: <span id="aid">58</span><br>
+  Regions: <span id="regions">12</span>
 </div>
 
-<div class="panel bottom-right" id="output">
-  Click globe to analyze region...
+<div class="panel bottom-left" id="events">
+  <div class="title">🚨 LIVE EVENTS</div>
 </div>
 
 <script type="module">
+
 import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.155/build/three.module.js";
 
+/* ---------------------------
+   🧠 1. GLOBAL STATE ENGINE
+----------------------------*/
+const state = {
+  UAE: { heat: 0.95, level: "CRITICAL" },
+  Kenya: { heat: 0.70, level: "HIGH" },
+  France: { heat: 0.40, level: "LOW" }
+};
+
+/* ---------------------------
+   🌍 THREE.JS SETUP
+----------------------------*/
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+const camera = new THREE.PerspectiveCamera(75, innerWidth/innerHeight, 0.1, 1000);
+
 const renderer = new THREE.WebGLRenderer({ antialias:true });
-renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setSize(innerWidth, innerHeight);
 document.getElementById("globe-container").appendChild(renderer.domElement);
 
 /* EARTH */
-const geometry = new THREE.SphereGeometry(5, 64, 64);
-const texture = new THREE.TextureLoader().load("https://threejs.org/examples/textures/earth_atmos_2048.jpg");
-const material = new THREE.MeshStandardMaterial({ map: texture });
-const globe = new THREE.Mesh(geometry, material);
+const globe = new THREE.Mesh(
+  new THREE.SphereGeometry(5, 64, 64),
+  new THREE.MeshStandardMaterial({
+    map: new THREE.TextureLoader().load("https://threejs.org/examples/textures/earth_atmos_2048.jpg")
+  })
+);
+
 scene.add(globe);
 
 /* LIGHT */
-const light = new THREE.PointLight(0xffffff, 2);
-light.position.set(10,10,10);
-scene.add(light);
-
+scene.add(new THREE.PointLight(0xffffff, 2).position.set(10,10,10));
 camera.position.z = 10;
 
-/* RAYCAST */
-const raycaster = new THREE.Raycaster();
-const mouse = new THREE.Vector2();
+/* ---------------------------
+   📡 EVENT SYSTEM
+----------------------------*/
+let events = [];
 
-/* REGION DATA */
-function getRegion(lat, lon) {
+function pushEvent(region, level, msg) {
 
-  if (lat > 20 && lat < 30 && lon > 50 && lon < 60) {
-    return {
-      name: "UAE",
-      level: "CRITICAL",
-      msg: "Food supply disruption detected. Immediate aid required."
-    };
-  }
-
-  if (lat > -5 && lat < 5 && lon > 35 && lon < 45) {
-    return {
-      name: "Kenya",
-      level: "HIGH",
-      msg: "Education infrastructure under stress."
-    };
-  }
-
-  if (lat > 40 && lat < 50 && lon > -5 && lon < 10) {
-    return {
-      name: "France",
-      level: "LOW",
-      msg: "Volunteer support demand rising."
-    };
-  }
-
-  return {
-    name: "Unknown Region",
-    level: "MONITORING",
-    msg: "No major crisis detected. Monitoring conditions."
+  const event = {
+    region,
+    level,
+    msg,
+    time: Date.now()
   };
+
+  events.unshift(event);
+  if (events.length > 5) events.pop();
+
+  renderEvents();
 }
 
-/* CLICK */
-window.addEventListener("click", (event) => {
+/* ---------------------------
+   🧾 RENDER EVENTS
+----------------------------*/
+function renderEvents() {
 
-  mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+  document.getElementById("events").innerHTML = `
+    <div class="title">🚨 LIVE EVENTS</div>
+    ${events.map(e => `
+      <div class="event ${e.level.toLowerCase()}">
+        ${e.region} → ${e.level}<br>
+        ${e.msg}
+      </div>
+    `).join("")}
+  `;
+}
 
-  raycaster.setFromCamera(mouse, camera);
+/* ---------------------------
+   🌡️ SIMULATION LOOP
+----------------------------*/
+function updateSystem() {
 
-  const intersects = raycaster.intersectObject(globe);
+  for (let r in state) {
 
-  if (intersects.length > 0) {
+    state[r].heat += (Math.random() * 0.02 - 0.01);
+    state[r].heat = Math.max(0.2, Math.min(1, state[r].heat));
 
-    const point = intersects[0].point;
-
-    const lat = 90 - (Math.acos(point.y / 5) * 180 / Math.PI);
-    const lon = ((270 + (Math.atan2(point.x, point.z) * 180 / Math.PI)) % 360) - 180;
-
-    const region = getRegion(lat, lon);
-
-    document.getElementById("output").innerHTML = `
-      🌍 ${region.name}<br><br>
-      Severity: ${region.level}<br><br>
-      🧠 AI Analysis:<br>
-      ${region.msg}
-    `;
+    if (state[r].heat > 0.85) {
+      pushEvent(r, "CRITICAL", "Escalation detected in region system.");
+    }
   }
 
-});
+  document.getElementById("impact").innerText = 157 + Math.floor(Math.random()*3);
+  document.getElementById("aid").innerText = 58 + Math.floor(Math.random()*2);
+  document.getElementById("regions").innerText = 12;
+}
 
-/* ANIMATE */
+/* ---------------------------
+   🔁 LOOP ENGINE
+----------------------------*/
+setInterval(updateSystem, 3000);
+
+/* ---------------------------
+   🎥 ANIMATION
+----------------------------*/
 function animate() {
   requestAnimationFrame(animate);
   globe.rotation.y += 0.002;
@@ -149,11 +179,12 @@ function animate() {
 animate();
 
 /* RESIZE */
-window.addEventListener("resize", () => {
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  camera.aspect = window.innerWidth/window.innerHeight;
+addEventListener("resize", () => {
+  renderer.setSize(innerWidth, innerHeight);
+  camera.aspect = innerWidth/innerHeight;
   camera.updateProjectionMatrix();
 });
+
 </script>
 
 </body>
