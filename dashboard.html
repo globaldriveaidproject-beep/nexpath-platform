@@ -7,7 +7,10 @@
 <body style="font-family:Arial;background:#0f172a;color:white;padding:20px">
 
 <h1>🚨 NexPath Global Command Center</h1>
-<p>Real-time humanitarian + funding intelligence system</p>
+<p>AI-powered humanitarian + alert system</p>
+
+<!-- ⚠️ ALERT BANNER -->
+<div id="alert" style="background:#7f1d1d;padding:10px;border-radius:10px;display:none;margin:10px 0;"></div>
 
 <!-- SUMMARY -->
 <div id="summary" style="margin:15px 0; padding:10px; background:#111827; border-radius:10px;"></div>
@@ -20,10 +23,8 @@
   <button onclick="filter('LOW')">Low</button>
 </div>
 
-<!-- LIST -->
 <div id="list"></div>
 
-<!-- MAP -->
 <h2>🌍 Global Activity Map</h2>
 <canvas id="map" width="600" height="300" style="background:#111827;border-radius:10px;"></canvas>
 
@@ -47,21 +48,34 @@ const db = getFirestore(app);
 let allRequests = [];
 
 /* =========================
-   💰 DONATION TOTALS ENGINE
+   📡 ALERT SYSTEM
+========================= */
+function triggerAlert(caseItem) {
+  const alertBox = document.getElementById("alert");
+
+  alertBox.style.display = "block";
+  alertBox.innerHTML =
+    "🚨 CRITICAL ALERT: " + caseItem.message +
+    " | AI Score: " + caseItem.urgencyScore;
+
+  // auto hide after 6 sec
+  setTimeout(() => {
+    alertBox.style.display = "none";
+  }, 6000);
+
+  console.log("📲 EMAIL ALERT TRIGGER (simulate):", caseItem.email);
+}
+
+/* =========================
+   💰 DONATION TOTALS
 ========================= */
 async function getDonationTotals() {
   const snap = await getDocs(collection(db, "donations"));
 
   let totals = {};
-
   snap.forEach(d => {
     const data = d.data();
-
-    if (!totals[data.requestId]) {
-      totals[data.requestId] = 0;
-    }
-
-    totals[data.requestId] += Number(data.amount);
+    totals[data.requestId] = (totals[data.requestId] || 0) + Number(data.amount);
   });
 
   return totals;
@@ -79,11 +93,18 @@ async function loadData() {
   snap.forEach(d => {
     let data = d.data();
 
-    allRequests.push({
+    let item = {
       id: d.id,
       ...data,
       totalDonations: donationTotals[d.id] || 0
-    });
+    };
+
+    // 🚨 AUTO ALERT TRIGGER
+    if (item.priority === "CRITICAL") {
+      triggerAlert(item);
+    }
+
+    allRequests.push(item);
   });
 
   render(allRequests);
@@ -100,7 +121,7 @@ function updateSummary() {
   let high = allRequests.filter(r => r.priority === "HIGH").length;
 
   document.getElementById("summary").innerHTML = `
-    Total Cases: ${total} |
+    Total: ${total} |
     <span style="color:red">Critical: ${critical}</span> |
     <span style="color:orange">High: ${high}</span>
   `;
@@ -123,25 +144,13 @@ function render(data) {
       <div style="border:1px solid ${color};padding:10px;margin:10px;border-radius:10px;">
         <h3 style="color:${color}">${r.priority}</h3>
 
-        <p><b>Message:</b> ${r.message}</p>
-        <p><b>Category:</b> ${r.category}</p>
-        <p><b>Email:</b> ${r.email}</p>
-        <p><b>Status:</b> ${r.status}</p>
+        <p>${r.message}</p>
+        <p>AI Score: ${r.urgencyScore || 0}</p>
+        <p>Suggestion: ${r.suggestion || "N/A"}</p>
 
-        <p><b>AI Score:</b> ${r.urgencyScore || 0}/100</p>
-        <p><b>Suggestion:</b> ${r.suggestion || "N/A"}</p>
+        <p>💰 Donations: $${r.totalDonations || 0}</p>
 
-        <p><b>💰 Donations:</b> $${r.totalDonations || 0}</p>
-
-        <p><b>AI Match:</b> ${
-          r.priority === "CRITICAL"
-            ? "🔥 Immediate donor required"
-            : r.urgencyScore > 70
-              ? "⚡ High priority funding recommended"
-              : "💡 Standard support case"
-        }</p>
-
-        <button onclick="resolve('${r.id}')">Mark Resolved</button>
+        <button onclick="resolve('${r.id}')">Resolve</button>
         <button onclick="donatePrompt('${r.id}')">Donate</button>
       </div>
     `;
@@ -180,7 +189,7 @@ function drawMap(data) {
 }
 
 /* =========================
-   ✅ RESOLVE CASE
+   ✅ RESOLVE
 ========================= */
 window.resolve = async function(id) {
   await updateDoc(doc(db, "requests", id), {
@@ -200,19 +209,19 @@ window.donatePrompt = async function(requestId) {
   if (!amount) return;
 
   await addDoc(collection(db, "donations"), {
-    requestId: requestId,
+    requestId,
     amount: Number(amount),
     donorEmail: email || "anonymous",
     createdAt: Date.now()
   });
 
-  alert("💰 Donation linked!");
+  alert("💰 Donation recorded!");
 
   loadData();
 };
 
 /* =========================
-   🚀 INIT
+   🚀 START
 ========================= */
 loadData();
 setInterval(loadData, 5000);
