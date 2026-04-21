@@ -1,14 +1,14 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>NexPath AI - Fixed Globe</title>
+  <title>NexPath AI - Global Command System</title>
 
   <style>
     body {
       margin: 0;
       overflow: hidden;
-      background: black;
       font-family: Arial;
+      background: black;
       color: white;
     }
 
@@ -16,31 +16,45 @@
       position: fixed;
       width: 100%;
       height: 100%;
+      z-index: 0;
     }
 
-    .ui {
+    /* LEFT PANEL */
+    .panel {
       position: absolute;
       top: 20px;
       left: 20px;
-      background: rgba(0,0,0,0.6);
+      width: 320px;
+      background: rgba(0,0,0,0.65);
       padding: 20px;
       border-radius: 12px;
-      width: 300px;
       z-index: 10;
+      backdrop-filter: blur(10px);
     }
 
     .title {
       color: #00ffe1;
-      font-size: 20px;
+      font-size: 18px;
       font-weight: bold;
     }
 
-    .card {
-      margin-top: 10px;
-      padding: 8px;
-      background: rgba(255,255,255,0.1);
-      border-radius: 8px;
+    .section {
+      margin-top: 15px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(255,255,255,0.2);
     }
+
+    .card {
+      margin-top: 8px;
+      padding: 8px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 8px;
+      font-size: 13px;
+    }
+
+    .red { color: #ff4d4d; }
+    .yellow { color: #ffd24d; }
+    .green { color: #4dff88; }
   </style>
 </head>
 
@@ -48,20 +62,38 @@
 
 <div id="globe"></div>
 
-<div class="ui">
-  <div class="title">NexPath AI</div>
-  <div>Live Humanitarian System</div>
+<!-- 🧠 3-IN-1 CONTROL PANEL -->
+<div class="panel">
 
-  <div class="card">Global Impact: 141</div>
-  <div class="card">Aid Delivered: 56</div>
-  <div class="card">Active Regions: 12</div>
+  <div class="title">🌍 NexPath AI Control System</div>
+  <div>Live Global Intelligence</div>
 
-  <div class="card">Food crisis UAE</div>
-  <div class="card">Education support</div>
-  <div class="card">Medical aid request</div>
+  <!-- INVESTOR LAYER -->
+  <div class="section">
+    <b>📊 Investor Dashboard</b>
+    <div class="card">Global Impact: 141</div>
+    <div class="card">Aid Delivered: 56</div>
+    <div class="card">Active Regions: 12</div>
+  </div>
+
+  <!-- CRISIS LAYER -->
+  <div class="section">
+    <b>🚨 Crisis Command Center</b>
+    <div class="card red">UAE - Food Crisis (CRITICAL)</div>
+    <div class="card yellow">Kenya - Education Need (HIGH)</div>
+    <div class="card green">France - Volunteers Needed (LOW)</div>
+  </div>
+
+  <!-- HUMAN LAYER -->
+  <div class="section">
+    <b>🌐 Humanitarian Portal</b>
+    <div class="card">Request system active</div>
+    <div class="card">Live tracking enabled</div>
+  </div>
+
 </div>
 
-<!-- ✅ ONLY ONE SAFE GLOBE LIBRARY -->
+<!-- 🌍 STABLE GLOBE -->
 <script src="https://unpkg.com/globe.gl@2.32.0/dist/globe.gl.min.js"></script>
 
 <script>
@@ -72,9 +104,11 @@ const world = Globe()(document.getElementById('globe'))
 world.controls().autoRotate = true;
 world.controls().autoRotateSpeed = 0.6;
 
+/* 🚨 CRISIS HOTSPOTS */
 world.pointsData([
-  { lat: 25.276987, lng: 55.296249, size: 0.5, color: 'red' },
-  { lat: 0, lng: 0, size: 0.5, color: 'blue' }
+  { lat: 25.276987, lng: 55.296249, size: 0.6, color: 'red' },   // UAE
+  { lat: -1.2921, lng: 36.8219, size: 0.5, color: 'yellow' },    // Kenya
+  { lat: 48.8566, lng: 2.3522, size: 0.4, color: 'green' }      // France
 ])
 .pointAltitude('size')
 .pointColor('color');
