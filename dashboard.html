@@ -1,36 +1,6 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>NexPath Global Command Center</title>
-</head>
-
-<body style="font-family:Arial;background:#0f172a;color:white;padding:20px">
-
-<h1>🚨 NexPath Global Command Center</h1>
-<p>AI-powered humanitarian + alert system</p>
-
-<!-- ⚠️ ALERT BANNER -->
-<div id="alert" style="background:#7f1d1d;padding:10px;border-radius:10px;display:none;margin:10px 0;"></div>
-
-<!-- SUMMARY -->
-<div id="summary" style="margin:15px 0; padding:10px; background:#111827; border-radius:10px;"></div>
-
-<!-- FILTERS -->
-<div style="margin:20px 0;">
-  <button onclick="filter('ALL')">All</button>
-  <button onclick="filter('CRITICAL')">Critical</button>
-  <button onclick="filter('HIGH')">High</button>
-  <button onclick="filter('LOW')">Low</button>
-</div>
-
-<div id="list"></div>
-
-<h2>🌍 Global Activity Map</h2>
-<canvas id="map" width="600" height="300" style="background:#111827;border-radius:10px;"></canvas>
-
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, getDocs, updateDoc, doc } 
+import { getFirestore, collection, getDocs } 
 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -46,24 +16,35 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 let allRequests = [];
+let allDonors = [];
 
 /* =========================
-   📡 ALERT SYSTEM
+   💰 LOAD DONORS
 ========================= */
-function triggerAlert(caseItem) {
-  const alertBox = document.getElementById("alert");
+async function loadDonors() {
+  const snap = await getDocs(collection(db, "donations"));
 
-  alertBox.style.display = "block";
-  alertBox.innerHTML =
-    "🚨 CRITICAL ALERT: " + caseItem.message +
-    " | AI Score: " + caseItem.urgencyScore;
+  let donors = [];
 
-  // auto hide after 6 sec
-  setTimeout(() => {
-    alertBox.style.display = "none";
-  }, 6000);
+  snap.forEach(d => {
+    donors.push(d.data());
+  });
 
-  console.log("📲 EMAIL ALERT TRIGGER (simulate):", caseItem.email);
+  allDonors = donors;
+}
+
+/* =========================
+   🤖 AUTO MATCH ENGINE
+========================= */
+function findBestDonors(request) {
+  if (!allDonors.length) return [];
+
+  // simple logic: highest donations = priority donors
+  let ranked = [...allDonors]
+    .sort((a, b) => b.amount - a.amount)
+    .slice(0, 3);
+
+  return ranked;
 }
 
 /* =========================
@@ -85,6 +66,9 @@ async function getDonationTotals() {
    📊 LOAD DATA
 ========================= */
 async function loadData() {
+
+  await loadDonors();
+
   const snap = await getDocs(collection(db, "requests"));
   const donationTotals = await getDonationTotals();
 
@@ -93,37 +77,24 @@ async function loadData() {
   snap.forEach(d => {
     let data = d.data();
 
-    let item = {
+    allRequests.push({
       id: d.id,
       ...data,
       totalDonations: donationTotals[d.id] || 0
-    };
-
-    // 🚨 AUTO ALERT TRIGGER
-    if (item.priority === "CRITICAL") {
-      triggerAlert(item);
-    }
-
-    allRequests.push(item);
+    });
   });
 
   render(allRequests);
   updateSummary();
-  drawMap(allRequests);
 }
 
 /* =========================
    📊 SUMMARY
 ========================= */
 function updateSummary() {
-  let total = allRequests.length;
-  let critical = allRequests.filter(r => r.priority === "CRITICAL").length;
-  let high = allRequests.filter(r => r.priority === "HIGH").length;
-
   document.getElementById("summary").innerHTML = `
-    Total: ${total} |
-    <span style="color:red">Critical: ${critical}</span> |
-    <span style="color:orange">High: ${high}</span>
+    Total Cases: ${allRequests.length} |
+    Critical: ${allRequests.filter(r => r.priority === "CRITICAL").length}
   `;
 }
 
@@ -140,93 +111,39 @@ function render(data) {
       r.priority === "CRITICAL" ? "red" :
       r.priority === "HIGH" ? "orange" : "lightgreen";
 
+    let donors = findBestDonors(r);
+
     list.innerHTML += `
       <div style="border:1px solid ${color};padding:10px;margin:10px;border-radius:10px;">
+
         <h3 style="color:${color}">${r.priority}</h3>
 
-        <p>${r.message}</p>
-        <p>AI Score: ${r.urgencyScore || 0}</p>
-        <p>Suggestion: ${r.suggestion || "N/A"}</p>
+        <p><b>Message:</b> ${r.message}</p>
+        <p><b>AI Score:</b> ${r.urgencyScore || 0}</p>
+        <p><b>Category:</b> ${r.category}</p>
 
-        <p>💰 Donations: $${r.totalDonations || 0}</p>
+        <p><b>💰 Total Donations:</b> $${r.totalDonations}</p>
 
-        <button onclick="resolve('${r.id}')">Resolve</button>
-        <button onclick="donatePrompt('${r.id}')">Donate</button>
+        <h4>🤖 Recommended Donors:</h4>
+        <ul>
+          ${donors.map(d => `<li>${d.donorEmail} - $${d.amount}</li>`).join("")}
+        </ul>
+
+        <p><b>AI Action:</b> ${
+          r.priority === "CRITICAL"
+            ? "🚨 Immediate funding required"
+            : "💡 Standard monitoring"
+        }</p>
+
       </div>
     `;
   });
 }
 
 /* =========================
-   🎯 FILTER
-========================= */
-window.filter = function(type) {
-  if (type === "ALL") render(allRequests);
-  else render(allRequests.filter(r => r.priority === type));
-};
-
-/* =========================
-   🌍 MAP
-========================= */
-function drawMap(data) {
-  const canvas = document.getElementById("map");
-  const ctx = canvas.getContext("2d");
-
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  data.forEach(r => {
-    let x = Math.random() * canvas.width;
-    let y = Math.random() * canvas.height;
-
-    ctx.fillStyle =
-      r.priority === "CRITICAL" ? "red" :
-      r.priority === "HIGH" ? "orange" : "green";
-
-    ctx.beginPath();
-    ctx.arc(x, y, 5, 0, Math.PI * 2);
-    ctx.fill();
-  });
-}
-
-/* =========================
-   ✅ RESOLVE
-========================= */
-window.resolve = async function(id) {
-  await updateDoc(doc(db, "requests", id), {
-    status: "resolved"
-  });
-
-  loadData();
-};
-
-/* =========================
-   💰 DONATE
-========================= */
-window.donatePrompt = async function(requestId) {
-  let amount = prompt("Enter donation amount:");
-  let email = prompt("Your email:");
-
-  if (!amount) return;
-
-  await addDoc(collection(db, "donations"), {
-    requestId,
-    amount: Number(amount),
-    donorEmail: email || "anonymous",
-    createdAt: Date.now()
-  });
-
-  alert("💰 Donation recorded!");
-
-  loadData();
-};
-
-/* =========================
-   🚀 START
+   🚀 INIT
 ========================= */
 loadData();
 setInterval(loadData, 5000);
 
 </script>
-
-</body>
-</html>
