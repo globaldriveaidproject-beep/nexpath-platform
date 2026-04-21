@@ -2,65 +2,115 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>NexPath AI</title>
+<title>NexPath AI System</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
 
 <style>
 body {
-    margin: 0;
-    font-family: 'Orbitron', sans-serif;
-    color: white;
-    overflow: hidden;
-    background: black;
+  margin: 0;
+  font-family: 'Orbitron', sans-serif;
+  color: white;
+  overflow: hidden;
+  background: black;
 }
 
-/* Globe background */
+/* 🌍 Globe background */
 #globe-container {
-    position: fixed;
-    width: 100%;
-    height: 100%;
-    z-index: -1;
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  z-index: -2;
 }
 
-/* UI overlay */
-.overlay {
-    position: relative;
-    z-index: 10;
-    padding: 20px;
+/* Glow overlay */
+body::after {
+  content: "";
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle, rgba(0,255,255,0.1), black);
+  z-index: -1;
 }
 
-/* NAV */
-nav {
-    display: flex;
-    justify-content: space-between;
+/* UI */
+.container {
+  padding: 30px;
 }
 
-nav h1 {
-    color: cyan;
+/* Header */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-/* DASHBOARD */
-.dashboard {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px,1fr));
-    gap: 20px;
-    margin-top: 40px;
+.logo {
+  font-size: 22px;
+  color: cyan;
 }
 
-.card {
-    background: rgba(0,0,0,0.5);
-    padding: 20px;
-    border-radius: 15px;
-    backdrop-filter: blur(10px);
-    border: 1px solid cyan;
+.nav {
+  opacity: 0.7;
 }
 
-.critical { color: red; }
+/* Hero */
+.hero {
+  margin-top: 60px;
+  max-width: 600px;
+}
+
+.hero h1 {
+  font-size: 42px;
+  color: cyan;
+}
+
+.hero p {
+  opacity: 0.8;
+  line-height: 1.6;
+}
+
+/* Panels */
+.panel {
+  position: absolute;
+  background: rgba(0,0,0,0.4);
+  border: 1px solid rgba(0,255,255,0.3);
+  backdrop-filter: blur(15px);
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0 0 20px rgba(0,255,255,0.2);
+}
+
+/* Positions */
+.top-right { top: 20px; right: 20px; }
+.bottom-left { bottom: 20px; left: 20px; }
+.bottom-right { bottom: 20px; right: 20px; }
+
+/* Stats */
+.stat {
+  font-size: 18px;
+  margin: 5px 0;
+}
+
+/* Crisis */
+.crisis {
+  margin: 5px 0;
+}
+
+.critical {
+  color: red;
+  animation: pulse 1s infinite;
+}
+
 .high { color: orange; }
 .low { color: lime; }
 
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.4; }
+  100% { opacity: 1; }
+}
 </style>
 </head>
 
@@ -68,62 +118,51 @@ nav h1 {
 
 <div id="globe-container"></div>
 
-<div class="overlay">
+<div class="container">
 
-<nav>
-    <h1>🌍 NexPath AI</h1>
-    <div>Home | Mission | Donate</div>
-</nav>
-
-<h2>Global Intelligence System</h2>
-
-<div class="dashboard">
-
-<div class="card">
-<h3>Global Impact</h3>
-<p>157</p>
+<div class="header">
+  <div class="logo">🌍 NexPath AI</div>
+  <div class="nav">Home | Mission | Donate</div>
 </div>
 
-<div class="card">
-<h3>Aid Delivered</h3>
-<p>58</p>
-</div>
-
-<div class="card">
-<h3>Active Regions</h3>
-<p>12</p>
-</div>
-
-<div class="card">
-<h3>Global Pressure</h3>
-<p>71 / 100</p>
+<div class="hero">
+  <h1>Global Intelligence System</h1>
+  <p>
+    AI-powered humanitarian engine detecting crises,
+    predicting risk, and activating global response in real time.
+  </p>
 </div>
 
 </div>
 
-<div class="dashboard">
-
-<div class="card critical">UAE - Food Crisis</div>
-<div class="card high">Kenya - Education</div>
-<div class="card low">France - Volunteers</div>
-
+<!-- 📊 Investor Panel -->
+<div class="panel top-right">
+  <div class="stat">Impact: 157</div>
+  <div class="stat">Aid: 58</div>
+  <div class="stat">Regions: 12</div>
+  <div class="stat">Pressure: 71/100</div>
 </div>
 
+<!-- 🚨 Crisis Panel -->
+<div class="panel bottom-left">
+  <div class="crisis critical">UAE – Food Crisis</div>
+  <div class="crisis high">Kenya – Education</div>
+  <div class="crisis low">France – Volunteers</div>
 </div>
 
-<!-- ✅ CLEAN THREE.JS (NO CONFLICT) -->
+<!-- 🧠 AI Panel -->
+<div class="panel bottom-right">
+  <b>AI STATUS: ACTIVE</b>
+  <p>Scanning global signals...</p>
+</div>
+
+<!-- 🌍 THREE JS -->
 <script type="module">
-
 import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.155/build/three.module.js";
 
 const scene = new THREE.Scene();
 
-const camera = new THREE.PerspectiveCamera(
-75,
-window.innerWidth / window.innerHeight,
-0.1,
-1000
-);
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -136,60 +175,32 @@ const texture = new THREE.TextureLoader().load(
 "https://threejs.org/examples/textures/earth_atmos_2048.jpg"
 );
 
-const material = new THREE.MeshStandardMaterial({
-map: texture
-});
+const material = new THREE.MeshStandardMaterial({ map: texture });
 
 const globe = new THREE.Mesh(geometry, material);
 scene.add(globe);
 
-/* Light */
-const light = new THREE.PointLight(0xffffff, 2);
-light.position.set(10, 10, 10);
+/* Glow light */
+const light = new THREE.PointLight(0x00ffff, 2);
+light.position.set(10,10,10);
 scene.add(light);
-
-/* Crisis markers */
-function createMarker(color, lat, lon) {
-    const marker = new THREE.Mesh(
-        new THREE.SphereGeometry(0.1, 16, 16),
-        new THREE.MeshBasicMaterial({ color })
-    );
-
-    const phi = (90 - lat) * (Math.PI / 180);
-    const theta = (lon + 180) * (Math.PI / 180);
-
-    marker.position.set(
-        -5 * Math.sin(phi) * Math.cos(theta),
-        5 * Math.cos(phi),
-        5 * Math.sin(phi) * Math.sin(theta)
-    );
-
-    scene.add(marker);
-}
-
-/* UAE, Kenya, France */
-createMarker(0xff0000, 25.2, 55.3);
-createMarker(0xffaa00, -1.2, 36.8);
-createMarker(0x00ff00, 46.2, 2.2);
 
 camera.position.z = 10;
 
-/* Animation */
+/* Animate */
 function animate() {
-    requestAnimationFrame(animate);
-    globe.rotation.y += 0.002;
-    renderer.render(scene, camera);
+  requestAnimationFrame(animate);
+  globe.rotation.y += 0.002;
+  renderer.render(scene, camera);
 }
 
 animate();
 
-/* Resize fix */
 window.addEventListener("resize", () => {
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  camera.aspect = window.innerWidth/window.innerHeight;
+  camera.updateProjectionMatrix();
 });
-
 </script>
 
 </body>
