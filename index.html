@@ -1,23 +1,23 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>NexPath AI - Operating System</title>
+  <title>NexPath AI - Global Operating Dashboard</title>
 
   <style>
     body {
       margin: 0;
       font-family: Arial, sans-serif;
-      background: radial-gradient(circle at top, #050814, #000);
+      background: radial-gradient(circle at top, #050816, #000);
       color: white;
       overflow-x: hidden;
     }
 
-    /* HEADER STATUS */
+    /* TOP BAR */
     .topbar {
       position: absolute;
       top: 15px;
       right: 15px;
-      width: 260px;
+      width: 280px;
       padding: 12px;
       background: rgba(255,255,255,0.05);
       border: 1px solid rgba(255,255,255,0.1);
@@ -80,55 +80,62 @@
       width: 520px;
       height: 520px;
       border-radius: 50%;
-      box-shadow: 0 0 90px rgba(59,130,246,0.5);
+      box-shadow: 0 0 100px rgba(59,130,246,0.5);
       overflow: hidden;
     }
 
-    /* LIVE FEED */
-    .feed {
-      position: absolute;
-      bottom: 20px;
-      left: 20px;
-      width: 320px;
-      height: 220px;
-      padding: 12px;
-      background: rgba(255,255,255,0.05);
-      border-radius: 12px;
-      border: 1px solid rgba(255,255,255,0.1);
-      backdrop-filter: blur(10px);
-      font-size: 12px;
-      overflow: hidden;
-    }
-
-    .event {
-      margin: 6px 0;
-      animation: fade 1s ease-in;
-    }
-
-    @keyframes fade {
-      from { opacity: 0; transform: translateY(5px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* IMPACT COUNTER */
-    .impact {
+    /* INVESTOR PANEL */
+    .panel {
       position: absolute;
       bottom: 20px;
       right: 20px;
-      width: 220px;
-      padding: 12px;
+      width: 320px;
+      padding: 15px;
       background: rgba(255,255,255,0.05);
-      border-radius: 12px;
       border: 1px solid rgba(255,255,255,0.1);
       backdrop-filter: blur(10px);
+      border-radius: 12px;
       font-size: 12px;
+    }
+
+    .metric {
+      margin: 8px 0;
+      display: flex;
+      justify-content: space-between;
     }
 
     .big {
       font-size: 20px;
-      font-weight: bold;
       color: #60a5fa;
+      font-weight: bold;
     }
+
+    /* AI DECISION PANEL */
+    .aiPanel {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      width: 320px;
+      height: 180px;
+      padding: 12px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 12px;
+      font-size: 12px;
+      overflow: hidden;
+    }
+
+    .log {
+      margin: 6px 0;
+      animation: fade 0.8s ease-in;
+    }
+
+    @keyframes fade {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
   </style>
 </head>
 
@@ -137,21 +144,23 @@
 <!-- TOP STATUS -->
 <div class="topbar">
   <div><span class="dot green"></span>AI CORE: ACTIVE</div>
-  <div><span class="dot yellow"></span>GLOBAL SCAN: RUNNING</div>
-  <div><span class="dot red"></span>CRISIS LEVEL: ELEVATED</div>
+  <div><span class="dot yellow"></span>GLOBAL SYSTEM: SCANNING</div>
+  <div><span class="dot red"></span>CRISIS LEVEL: MANAGED</div>
 </div>
 
-<!-- LIVE FEED -->
-<div class="feed">
-  <b>Live Intelligence Feed</b>
-  <div id="feed"></div>
+<!-- INVESTOR PANEL -->
+<div class="panel">
+  <b>Investor Dashboard</b>
+
+  <div class="metric"><span>Global Impact</span><span class="big" id="impact">0</span></div>
+  <div class="metric"><span>Aid Delivered</span><span id="aid">0</span></div>
+  <div class="metric"><span>Active Regions</span><span id="regions">12</span></div>
 </div>
 
-<!-- IMPACT COUNTER -->
-<div class="impact">
-  <b>Global Impact</b>
-  <div class="big" id="people">0</div>
-  People Assisted
+<!-- AI DECISION PANEL -->
+<div class="aiPanel">
+  <b>AI Decision Engine</b>
+  <div id="aiLog"></div>
 </div>
 
 <!-- HERO -->
@@ -159,13 +168,13 @@
 
   <div class="left">
     <div class="title">NexPath AI</div>
-    <div class="title">Operating System</div>
+    <div class="title">Investor Operating System</div>
 
     <div class="subtitle">
-      Autonomous humanitarian intelligence system simulating global crisis detection, aid routing, and real-time impact tracking across nations.
+      Real-time humanitarian intelligence platform tracking global crisis, funding flow, and AI-driven aid deployment decisions.
     </div>
 
-    <button class="btn">Initialize Core</button>
+    <button class="btn">Run Global Analysis</button>
   </div>
 
   <div id="globeViz"></div>
@@ -186,9 +195,9 @@
   world.width(520);
   world.height(520);
 
-  // 🌍 AI DATA NODES
+  // 🌍 CORE DATA
   let points = [
-    { lat: 25.276987, lng: 55.296249, size: 0.6, color: 'red', label: 'Dubai Core' },
+    { lat: 25.276987, lng: 55.296249, size: 0.6, color: 'red', label: 'Dubai Hub' },
     { lat: -1.2921, lng: 36.8219, size: 0.7, color: 'red', label: 'Africa Crisis Zone' },
     { lat: 51.5072, lng: -0.1276, size: 0.5, color: 'yellow', label: 'UK Monitoring' }
   ];
@@ -199,60 +208,56 @@
     .pointColor('color')
     .pointLabel('label');
 
-  // 🌐 GLOBAL ROUTING
-  world.arcsData([
-    {
-      startLat: 25.276987,
-      startLng: 55.296249,
-      endLat: -1.2921,
-      endLng: 36.8219,
-      color: ['#ff0000', '#ff8800']
-    }
-  ])
-  .arcDashLength(0.5)
-  .arcDashGap(2)
-  .arcDashAnimateTime(2000);
-
   world.controls().autoRotate = true;
   world.controls().autoRotateSpeed = 0.6;
 
-  // 📡 LIVE FEED SYSTEM
-  const feed = document.getElementById("feed");
-  const events = [
-    "AI: Food shortage detected in East Africa",
-    "AI: Emergency request from Dubai processed",
-    "AI: Aid route established via UK hub",
-    "AI: High-risk displacement pattern detected",
-    "AI: Global scan cycle completed"
+  // 💰 IMPACT + AID FLOW
+  let impact = 0;
+  let aid = 0;
+
+  setInterval(() => {
+    impact += Math.floor(Math.random() * 80 + 20);
+    aid += Math.floor(Math.random() * 40 + 10);
+
+    document.getElementById("impact").innerText = impact.toLocaleString();
+    document.getElementById("aid").innerText = aid.toLocaleString();
+  }, 2000);
+
+  // 🧠 AI DECISION LOGIC SIMULATION
+  const aiLog = document.getElementById("aiLog");
+
+  const logs = [
+    "AI: Detecting food shortage cluster...",
+    "AI: Assigning emergency response level RED",
+    "AI: Routing aid via nearest hub (Dubai)",
+    "AI: Funding stream activated",
+    "AI: Crisis stabilized in monitored zone"
   ];
 
   let i = 0;
+
   setInterval(() => {
     const div = document.createElement("div");
-    div.className = "event";
-    div.innerText = events[i % events.length];
-    feed.prepend(div);
+    div.className = "log";
+    div.innerText = logs[i % logs.length];
 
-    if (feed.children.length > 7) feed.removeChild(feed.lastChild);
+    aiLog.prepend(div);
+
+    if (aiLog.children.length > 6) {
+      aiLog.removeChild(aiLog.lastChild);
+    }
 
     i++;
   }, 1800);
 
-  // 💰 IMPACT COUNTER
-  let people = 0;
-  setInterval(() => {
-    people += Math.floor(Math.random() * 50 + 10);
-    document.getElementById("people").innerText = people.toLocaleString();
-  }, 2000);
-
-  // 🔴 DYNAMIC CRISIS SIGNALS
+  // 🌐 DYNAMIC GLOBAL EVENTS
   setInterval(() => {
     points.push({
       lat: 20 + Math.random() * 30,
       lng: 10 + Math.random() * 60,
       size: 0.5,
       color: 'red',
-      label: 'New AI Detected Signal'
+      label: 'AI Detected Signal'
     });
 
     world.pointsData(points);
