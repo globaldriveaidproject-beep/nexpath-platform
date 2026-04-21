@@ -1,26 +1,38 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>NexPath AI - Live Humanitarian System</title>
+  <title>NexPath AI - Global System</title>
 
   <style>
     body {
       margin: 0;
       font-family: Arial;
-      background: radial-gradient(circle at top, #050816, #000);
+      background: black;
+      overflow: hidden;
       color: white;
     }
 
-    .hero {
-      display: flex;
-      justify-content: space-between;
-      padding: 40px;
+    /* 🌍 FULLSCREEN GLOBE */
+    #globeBg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
     }
 
-    .left { max-width: 500px; }
+    /* 🧊 GLASS UI */
+    .panel {
+      backdrop-filter: blur(15px);
+      background: rgba(0,0,0,0.5);
+      border-radius: 12px;
+      padding: 20px;
+      margin: 20px;
+    }
 
     .title {
-      font-size: 48px;
+      font-size: 32px;
       font-weight: bold;
       background: linear-gradient(90deg,#3b82f6,#8b5cf6);
       -webkit-background-clip: text;
@@ -28,83 +40,76 @@
     }
 
     .btn {
-      margin-top: 20px;
-      padding: 12px;
+      padding: 10px;
+      margin-top: 10px;
       background: linear-gradient(90deg,#2563eb,#7c3aed);
       border: none;
       color: white;
-      border-radius: 8px;
+      border-radius: 6px;
       cursor: pointer;
     }
 
-    #globeViz { width: 500px; height: 500px; }
-
-    .form {
-      margin: 40px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
     input, textarea {
-      width: 350px;
+      width: 100%;
       padding: 10px;
-      margin: 8px;
-      border-radius: 8px;
+      margin-top: 10px;
+      border-radius: 6px;
       border: none;
     }
 
-    .admin {
-      margin: 40px;
-      background: rgba(255,255,255,0.05);
-      padding: 15px;
-      border-radius: 10px;
-    }
-
     .card {
-      background: rgba(255,255,255,0.08);
-      margin: 10px 0;
+      background: rgba(255,255,255,0.1);
+      margin-top: 10px;
       padding: 10px;
-      border-radius: 8px;
+      border-radius: 6px;
     }
   </style>
 </head>
 
 <body>
 
-<div class="hero">
-  <div class="left">
-    <div class="title">NexPath AI</div>
-    <div class="title">Live Humanitarian System</div>
+<!-- 🌍 BACKGROUND -->
+<div id="globeBg"></div>
 
-    <button class="btn">System Active</button>
-  </div>
-
-  <div id="globeViz"></div>
+<!-- 🧠 HEADER -->
+<div class="panel">
+  <div class="title">NexPath AI</div>
+  <div>Live Humanitarian System</div>
+  <button class="btn">System Active</button>
 </div>
 
-<!-- REQUEST FORM -->
-<div class="form">
+<!-- 📩 FORM -->
+<div class="panel">
   <h2>Request Help</h2>
   <input id="email" placeholder="Email (optional)">
   <textarea id="message" placeholder="Describe your situation..."></textarea>
   <button class="btn" onclick="submitRequest()">Submit</button>
 </div>
 
-<!-- ADMIN PANEL -->
-<div class="admin">
-  <h2>Live Requests (Admin)</h2>
+<!-- 📊 ADMIN -->
+<div class="panel">
+  <h2>Live Requests</h2>
   <div id="requests"></div>
 </div>
 
-<!-- LIBRARIES -->
+<!-- 🌍 GLOBE -->
 <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
 <script src="https://unpkg.com/globe.gl"></script>
 
+<script>
+const globe = Globe()(document.getElementById('globeBg'))
+  .globeImageUrl('//unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
+  .backgroundColor('black');
+
+globe.controls().autoRotate = true;
+globe.controls().autoRotateSpeed = 0.5;
+</script>
+
+<!-- 🔥 FIREBASE -->
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, collection, addDoc, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "YOUR_KEY",
@@ -118,22 +123,28 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+let loading = false;
+
 window.submitRequest = async function () {
+  if (loading) return;
+
   const email = document.getElementById("email").value;
   const message = document.getElementById("message").value;
 
-  if (!message) {
-    alert("Please enter your situation");
-    return;
-  }
+  if (!message.trim()) return alert("Enter your situation");
+
+  loading = true;
 
   await addDoc(collection(db, "requests"), {
     email,
     message,
-    timestamp: new Date()
+    timestamp: Date.now()
   });
 
-  alert("Request submitted successfully");
+  document.getElementById("email").value = "";
+  document.getElementById("message").value = "";
+
+  loading = false;
 
   loadRequests();
 };
@@ -142,16 +153,17 @@ async function loadRequests() {
   const container = document.getElementById("requests");
   container.innerHTML = "";
 
-  const querySnapshot = await getDocs(collection(db, "requests"));
+  const q = query(collection(db, "requests"), orderBy("timestamp", "desc"));
+  const snapshot = await getDocs(q);
 
-  querySnapshot.forEach((doc) => {
-    const data = doc.data();
+  snapshot.forEach(doc => {
+    const d = doc.data();
 
     const div = document.createElement("div");
     div.className = "card";
     div.innerHTML = `
-      <b>Email:</b> ${data.email || "N/A"} <br>
-      <b>Message:</b> ${data.message}
+      <b>Email:</b> ${d.email || "N/A"}<br>
+      <b>Message:</b> ${d.message}
     `;
 
     container.appendChild(div);
@@ -160,13 +172,6 @@ async function loadRequests() {
 
 loadRequests();
 
-</script>
-
-<script>
-  const world = Globe()(document.getElementById('globeViz'))
-    .globeImageUrl('//unpkg.com/three-globe/example/img/earth-blue-marble.jpg');
-
-  world.controls().autoRotate = true;
 </script>
 
 </body>
