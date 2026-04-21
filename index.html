@@ -2,189 +2,126 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>NexPath AI Core System</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
-
+<title>NexPath AI Global Engine</title>
 <style>
-body {
-  margin: 0;
-  font-family: Orbitron;
-  background: black;
-  color: white;
-  overflow: hidden;
-}
-
-#globe-container {
-  position: fixed;
-  width: 100%;
-  height: 100%;
-  z-index: -1;
-}
-
-/* UI PANEL */
-.panel {
-  position: absolute;
-  background: rgba(0,0,0,0.55);
-  border: 1px solid cyan;
-  padding: 15px;
-  border-radius: 12px;
-  backdrop-filter: blur(10px);
-}
-
-.top-right { top: 20px; right: 20px; }
-.bottom-left { bottom: 20px; left: 20px; }
-
-.title {
-  color: cyan;
-  font-size: 14px;
-  margin-bottom: 10px;
-}
-
-.event {
-  margin: 5px 0;
-  font-size: 12px;
-}
-
-.critical { color: red; }
-.high { color: orange; }
-.low { color: lime; }
-
-</style>
-</head>
-
-<body>
-
-<div id="globe-container"></div>
-
-<!-- UI -->
-<div class="panel top-right">
-  <div class="title">🌍 NexPath AI CORE</div>
-  Impact: <span id="impact">157</span><br>
-  Aid: <span id="aid">58</span><br>
-  Regions: <span id="regions">12</span>
-</div>
-
-<div class="panel bottom-left" id="events">
-  <div class="title">🚨 LIVE EVENTS</div>
-</div>
-
-<script type="module">
-
-import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.155/build/three.module.js";
-
-/* ---------------------------
-   🧠 1. GLOBAL STATE ENGINE
-----------------------------*/
-const state = {
-  UAE: { heat: 0.95, level: "CRITICAL" },
-  Kenya: { heat: 0.70, level: "HIGH" },
-  France: { heat: 0.40, level: "LOW" }
-};
-
-/* ---------------------------
-   🌍 THREE.JS SETUP
-----------------------------*/
-const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(75, innerWidth/innerHeight, 0.1, 1000);
-
-const renderer = new THREE.WebGLRenderer({ antialias:true });
-renderer.setSize(innerWidth, innerHeight);
-document.getElementById("globe-container").appendChild(renderer.domElement);
-
-/* EARTH */
-const globe = new THREE.Mesh(
-  new THREE.SphereGeometry(5, 64, 64),
-  new THREE.MeshStandardMaterial({
-    map: new THREE.TextureLoader().load("https://threejs.org/examples/textures/earth_atmos_2048.jpg")
-  })
-);
-
-scene.add(globe);
-
-/* LIGHT */
-scene.add(new THREE.PointLight(0xffffff, 2).position.set(10,10,10));
-camera.position.z = 10;
-
-/* ---------------------------
-   📡 EVENT SYSTEM
-----------------------------*/
-let events = [];
-
-function pushEvent(region, level, msg) {
-
-  const event = {
-    region,
-    level,
-    msg,
-    time: Date.now()
-  };
-
-  events.unshift(event);
-  if (events.length > 5) events.pop();
-
-  renderEvents();
-}
-
-/* ---------------------------
-   🧾 RENDER EVENTS
-----------------------------*/
-function renderEvents() {
-
-  document.getElementById("events").innerHTML = `
-    <div class="title">🚨 LIVE EVENTS</div>
-    ${events.map(e => `
-      <div class="event ${e.level.toLowerCase()}">
-        ${e.region} → ${e.level}<br>
-        ${e.msg}
-      </div>
-    `).join("")}
-  `;
-}
-
-/* ---------------------------
-   🌡️ SIMULATION LOOP
-----------------------------*/
-function updateSystem() {
-
-  for (let r in state) {
-
-    state[r].heat += (Math.random() * 0.02 - 0.01);
-    state[r].heat = Math.max(0.2, Math.min(1, state[r].heat));
-
-    if (state[r].heat > 0.85) {
-      pushEvent(r, "CRITICAL", "Escalation detected in region system.");
-    }
+  body {
+    margin: 0;
+    overflow: hidden;
+    background: black;
+    font-family: Arial, sans-serif;
   }
 
-  document.getElementById("impact").innerText = 157 + Math.floor(Math.random()*3);
-  document.getElementById("aid").innerText = 58 + Math.floor(Math.random()*2);
-  document.getElementById("regions").innerText = 12;
-}
+  #ui {
+    position: absolute;
+    top: 30px;
+    left: 30px;
+    color: white;
+    z-index: 10;
+  }
 
-/* ---------------------------
-   🔁 LOOP ENGINE
-----------------------------*/
-setInterval(updateSystem, 3000);
+  h1 {
+    font-size: 22px;
+    letter-spacing: 2px;
+    opacity: 0.8;
+  }
 
-/* ---------------------------
-   🎥 ANIMATION
-----------------------------*/
-function animate() {
-  requestAnimationFrame(animate);
-  globe.rotation.y += 0.002;
-  renderer.render(scene, camera);
-}
-animate();
+  .tag {
+    font-size: 12px;
+    opacity: 0.6;
+  }
+</style>
+</head>
+<body>
 
-/* RESIZE */
-addEventListener("resize", () => {
-  renderer.setSize(innerWidth, innerHeight);
-  camera.aspect = innerWidth/innerHeight;
-  camera.updateProjectionMatrix();
+<div id="ui">
+  <h1>🌍 NEXPATH AI SYSTEM</h1>
+  <div class="tag">Global Humanitarian Intelligence Network</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.min.js"></script>
+
+<script>
+// Scene
+const scene = new THREE.Scene();
+
+// Camera
+const camera = new THREE.PerspectiveCamera(
+  75,
+  window.innerWidth / window.innerHeight,
+  0.1,
+  1000
+);
+camera.position.z = 2.5;
+
+// Renderer
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
+
+// 🌍 Earth Geometry
+const geometry = new THREE.SphereGeometry(1, 64, 64);
+
+// 🌍 FIXED Earth Texture (reliable CDN)
+const texture = new THREE.TextureLoader().load(
+  "https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg"
+);
+
+const material = new THREE.MeshStandardMaterial({
+  map: texture
 });
 
+const earth = new THREE.Mesh(geometry, material);
+scene.add(earth);
+
+// 💡 Light (IMPORTANT for realism)
+const light = new THREE.PointLight(0xffffff, 1.5);
+light.position.set(5, 3, 5);
+scene.add(light);
+
+// 🌌 Stars background
+function addStars() {
+  const starGeometry = new THREE.BufferGeometry();
+  const starCount = 2000;
+  const positions = [];
+
+  for (let i = 0; i < starCount; i++) {
+    positions.push(
+      (Math.random() - 0.5) * 200,
+      (Math.random() - 0.5) * 200,
+      (Math.random() - 0.5) * 200
+    );
+  }
+
+  starGeometry.setAttribute(
+    "position",
+    new THREE.Float32BufferAttribute(positions, 3)
+  );
+
+  const starMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 0.5 });
+  const stars = new THREE.Points(starGeometry, starMaterial);
+  scene.add(stars);
+}
+
+addStars();
+
+// 🔄 Animation loop
+function animate() {
+  requestAnimationFrame(animate);
+
+  earth.rotation.y += 0.002;
+  earth.rotation.x += 0.0005;
+
+  renderer.render(scene, camera);
+}
+
+animate();
+
+// 📱 Responsive fix
+window.addEventListener("resize", () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
 </script>
 
 </body>
