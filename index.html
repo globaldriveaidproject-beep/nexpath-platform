@@ -1,17 +1,44 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>NexPath AI - Global Intelligence System</title>
+  <title>NexPath AI - Operating System</title>
 
   <style>
     body {
       margin: 0;
       font-family: Arial, sans-serif;
-      background: radial-gradient(circle at top, #060a14, #000);
+      background: radial-gradient(circle at top, #050814, #000);
       color: white;
       overflow-x: hidden;
     }
 
+    /* HEADER STATUS */
+    .topbar {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      width: 260px;
+      padding: 12px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 12px;
+      font-size: 12px;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 6px;
+    }
+
+    .green { background: #22c55e; box-shadow: 0 0 10px #22c55e; }
+    .yellow { background: #facc15; box-shadow: 0 0 10px #facc15; }
+    .red { background: #ef4444; box-shadow: 0 0 10px #ef4444; }
+
+    /* HERO */
     .hero {
       display: flex;
       justify-content: space-between;
@@ -25,7 +52,7 @@
     }
 
     .title {
-      font-size: 52px;
+      font-size: 54px;
       font-weight: bold;
       background: linear-gradient(90deg,#3b82f6,#8b5cf6);
       -webkit-background-clip: text;
@@ -48,6 +75,7 @@
       cursor: pointer;
     }
 
+    /* GLOBE */
     #globeViz {
       width: 520px;
       height: 520px;
@@ -56,79 +84,74 @@
       overflow: hidden;
     }
 
-    /* LIVE EVENT FEED */
+    /* LIVE FEED */
     .feed {
       position: absolute;
       bottom: 20px;
       left: 20px;
-      width: 300px;
-      height: 200px;
+      width: 320px;
+      height: 220px;
+      padding: 12px;
       background: rgba(255,255,255,0.05);
+      border-radius: 12px;
       border: 1px solid rgba(255,255,255,0.1);
       backdrop-filter: blur(10px);
-      border-radius: 12px;
-      padding: 10px;
       font-size: 12px;
       overflow: hidden;
     }
 
-    .feed h4 {
-      margin: 0 0 10px 0;
-      color: #60a5fa;
-    }
-
     .event {
       margin: 6px 0;
-      opacity: 0;
-      animation: fadeIn 1s forwards;
+      animation: fade 1s ease-in;
     }
 
-    @keyframes fadeIn {
-      to { opacity: 1; }
+    @keyframes fade {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
-    /* TOP STATUS BAR */
-    .statusBar {
+    /* IMPACT COUNTER */
+    .impact {
       position: absolute;
-      top: 20px;
+      bottom: 20px;
       right: 20px;
-      width: 240px;
+      width: 220px;
       padding: 12px;
       background: rgba(255,255,255,0.05);
+      border-radius: 12px;
       border: 1px solid rgba(255,255,255,0.1);
       backdrop-filter: blur(10px);
-      border-radius: 10px;
       font-size: 12px;
     }
 
-    .dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      display: inline-block;
-      margin-right: 6px;
+    .big {
+      font-size: 20px;
+      font-weight: bold;
+      color: #60a5fa;
     }
-
-    .red { background: #ef4444; box-shadow: 0 0 10px #ef4444; }
-    .yellow { background: #facc15; box-shadow: 0 0 10px #facc15; }
-    .green { background: #22c55e; box-shadow: 0 0 10px #22c55e; }
-
   </style>
 </head>
 
 <body>
 
-<!-- STATUS -->
-<div class="statusBar">
-  <div><span class="dot green"></span>AI Core: ACTIVE</div>
-  <div><span class="dot yellow"></span>Signal Scan: RUNNING</div>
-  <div><span class="dot red"></span>Emergencies: DETECTED</div>
+<!-- TOP STATUS -->
+<div class="topbar">
+  <div><span class="dot green"></span>AI CORE: ACTIVE</div>
+  <div><span class="dot yellow"></span>GLOBAL SCAN: RUNNING</div>
+  <div><span class="dot red"></span>CRISIS LEVEL: ELEVATED</div>
 </div>
 
 <!-- LIVE FEED -->
 <div class="feed">
-  <h4>Live Humanitarian Feed</h4>
+  <b>Live Intelligence Feed</b>
   <div id="feed"></div>
+</div>
+
+<!-- IMPACT COUNTER -->
+<div class="impact">
+  <b>Global Impact</b>
+  <div class="big" id="people">0</div>
+  People Assisted
 </div>
 
 <!-- HERO -->
@@ -136,13 +159,13 @@
 
   <div class="left">
     <div class="title">NexPath AI</div>
-    <div class="title">Global Intelligence Layer</div>
+    <div class="title">Operating System</div>
 
     <div class="subtitle">
-      Real-time humanitarian AI system simulating global crisis detection, routing, and response intelligence across nations.
+      Autonomous humanitarian intelligence system simulating global crisis detection, aid routing, and real-time impact tracking across nations.
     </div>
 
-    <button class="btn">Activate Global System</button>
+    <button class="btn">Initialize Core</button>
   </div>
 
   <div id="globeViz"></div>
@@ -163,10 +186,10 @@
   world.width(520);
   world.height(520);
 
-  // 🌍 DYNAMIC CRISIS SIGNALS
+  // 🌍 AI DATA NODES
   let points = [
-    { lat: 25.276987, lng: 55.296249, size: 0.6, color: 'red', label: 'Dubai Emergency Signal' },
-    { lat: -1.2921, lng: 36.8219, size: 0.7, color: 'red', label: 'Kenya Crisis Zone' },
+    { lat: 25.276987, lng: 55.296249, size: 0.6, color: 'red', label: 'Dubai Core' },
+    { lat: -1.2921, lng: 36.8219, size: 0.7, color: 'red', label: 'Africa Crisis Zone' },
     { lat: 51.5072, lng: -0.1276, size: 0.5, color: 'yellow', label: 'UK Monitoring' }
   ];
 
@@ -176,7 +199,7 @@
     .pointColor('color')
     .pointLabel('label');
 
-  // 🌐 ROUTING ARCS
+  // 🌐 GLOBAL ROUTING
   world.arcsData([
     {
       startLat: 25.276987,
@@ -188,49 +211,52 @@
   ])
   .arcDashLength(0.5)
   .arcDashGap(2)
-  .arcDashAnimateTime(2500);
+  .arcDashAnimateTime(2000);
 
   world.controls().autoRotate = true;
   world.controls().autoRotateSpeed = 0.6;
 
-  // 🔴 LIVE FEED SYSTEM
+  // 📡 LIVE FEED SYSTEM
   const feed = document.getElementById("feed");
-
   const events = [
-    "✔ AI detected food shortage signal in East Africa",
-    "⚠ Emergency request received from Dubai zone",
-    "✔ Aid routing initiated via UK hub",
-    "⚠ High-risk displacement pattern detected",
-    "✔ Global scan cycle completed"
+    "AI: Food shortage detected in East Africa",
+    "AI: Emergency request from Dubai processed",
+    "AI: Aid route established via UK hub",
+    "AI: High-risk displacement pattern detected",
+    "AI: Global scan cycle completed"
   ];
 
   let i = 0;
-
   setInterval(() => {
     const div = document.createElement("div");
     div.className = "event";
     div.innerText = events[i % events.length];
     feed.prepend(div);
 
-    if (feed.children.length > 6) {
-      feed.removeChild(feed.lastChild);
-    }
+    if (feed.children.length > 7) feed.removeChild(feed.lastChild);
 
     i++;
+  }, 1800);
+
+  // 💰 IMPACT COUNTER
+  let people = 0;
+  setInterval(() => {
+    people += Math.floor(Math.random() * 50 + 10);
+    document.getElementById("people").innerText = people.toLocaleString();
   }, 2000);
 
-  // 🔴 PULSE EFFECT (SIMULATED MOVING CRISIS UPDATE)
+  // 🔴 DYNAMIC CRISIS SIGNALS
   setInterval(() => {
     points.push({
-      lat: 30 + Math.random() * 20,
-      lng: 20 + Math.random() * 40,
+      lat: 20 + Math.random() * 30,
+      lng: 10 + Math.random() * 60,
       size: 0.5,
       color: 'red',
       label: 'New AI Detected Signal'
     });
 
     world.pointsData(points);
-  }, 5000);
+  }, 6000);
 
 </script>
 
