@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>NexPath AI Command Center</title>
+  <title>NexPath AI - Global Intelligence System</title>
 
   <style>
     body {
       margin: 0;
       font-family: Arial, sans-serif;
-      background: radial-gradient(circle at top, #070b14, #000);
+      background: radial-gradient(circle at top, #060a14, #000);
       color: white;
       overflow-x: hidden;
     }
@@ -56,57 +56,79 @@
       overflow: hidden;
     }
 
-    /* CONTROL PANEL */
-    .dashboard {
+    /* LIVE EVENT FEED */
+    .feed {
       position: absolute;
-      top: 20px;
-      right: 20px;
-      width: 260px;
-      padding: 15px;
+      bottom: 20px;
+      left: 20px;
+      width: 300px;
+      height: 200px;
       background: rgba(255,255,255,0.05);
       border: 1px solid rgba(255,255,255,0.1);
       backdrop-filter: blur(10px);
       border-radius: 12px;
-      font-size: 13px;
+      padding: 10px;
+      font-size: 12px;
+      overflow: hidden;
     }
 
-    .status {
-      margin: 8px 0;
-      display: flex;
-      justify-content: space-between;
+    .feed h4 {
+      margin: 0 0 10px 0;
+      color: #60a5fa;
+    }
+
+    .event {
+      margin: 6px 0;
+      opacity: 0;
+      animation: fadeIn 1s forwards;
+    }
+
+    @keyframes fadeIn {
+      to { opacity: 1; }
+    }
+
+    /* TOP STATUS BAR */
+    .statusBar {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      width: 240px;
+      padding: 12px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 10px;
+      font-size: 12px;
     }
 
     .dot {
       width: 8px;
       height: 8px;
       border-radius: 50%;
-      background: #22c55e;
-      box-shadow: 0 0 10px #22c55e;
       display: inline-block;
       margin-right: 6px;
     }
 
-    .dot.red {
-      background: #ef4444;
-      box-shadow: 0 0 10px #ef4444;
-    }
+    .red { background: #ef4444; box-shadow: 0 0 10px #ef4444; }
+    .yellow { background: #facc15; box-shadow: 0 0 10px #facc15; }
+    .green { background: #22c55e; box-shadow: 0 0 10px #22c55e; }
 
-    .dot.yellow {
-      background: #facc15;
-      box-shadow: 0 0 10px #facc15;
-    }
   </style>
 </head>
 
 <body>
 
-<!-- DASHBOARD -->
-<div class="dashboard">
-  <h3>AI Command Center</h3>
+<!-- STATUS -->
+<div class="statusBar">
+  <div><span class="dot green"></span>AI Core: ACTIVE</div>
+  <div><span class="dot yellow"></span>Signal Scan: RUNNING</div>
+  <div><span class="dot red"></span>Emergencies: DETECTED</div>
+</div>
 
-  <div class="status"><span><span class="dot green"></span>System</span><span>ACTIVE</span></div>
-  <div class="status"><span><span class="dot yellow"></span>Monitoring</span><span>12 ZONES</span></div>
-  <div class="status"><span><span class="dot red"></span>Emergency</span><span>3 ALERTS</span></div>
+<!-- LIVE FEED -->
+<div class="feed">
+  <h4>Live Humanitarian Feed</h4>
+  <div id="feed"></div>
 </div>
 
 <!-- HERO -->
@@ -114,13 +136,13 @@
 
   <div class="left">
     <div class="title">NexPath AI</div>
-    <div class="title">Command Center</div>
+    <div class="title">Global Intelligence Layer</div>
 
     <div class="subtitle">
-      Live global humanitarian intelligence system detecting crisis, routing aid, and visualizing global response networks in real time.
+      Real-time humanitarian AI system simulating global crisis detection, routing, and response intelligence across nations.
     </div>
 
-    <button class="btn">Activate System</button>
+    <button class="btn">Activate Global System</button>
   </div>
 
   <div id="globeViz"></div>
@@ -141,12 +163,11 @@
   world.width(520);
   world.height(520);
 
-  // 🌍 Crisis + Aid Nodes
-  const points = [
-    { lat: 25.276987, lng: 55.296249, size: 0.6, color: 'red', label: 'Dubai Crisis Hub' },
-    { lat: -1.2921, lng: 36.8219, size: 0.7, color: 'red', label: 'Kenya Emergency Zone' },
-    { lat: 51.5072, lng: -0.1276, size: 0.5, color: 'yellow', label: 'UK Monitoring Hub' },
-    { lat: 40.7128, lng: -74.0060, size: 0.5, color: 'blue', label: 'USA Support Grid' }
+  // 🌍 DYNAMIC CRISIS SIGNALS
+  let points = [
+    { lat: 25.276987, lng: 55.296249, size: 0.6, color: 'red', label: 'Dubai Emergency Signal' },
+    { lat: -1.2921, lng: 36.8219, size: 0.7, color: 'red', label: 'Kenya Crisis Zone' },
+    { lat: 51.5072, lng: -0.1276, size: 0.5, color: 'yellow', label: 'UK Monitoring' }
   ];
 
   world
@@ -155,23 +176,62 @@
     .pointColor('color')
     .pointLabel('label');
 
-  // 🌐 CONNECTION ARCS (AI ROUTING VISUAL)
-  const arcs = [
-    { startLat: 25.276987, startLng: 55.296249, endLat: -1.2921, endLng: 36.8219, color: ['#ff0000', '#ff8800'] },
-    { startLat: 51.5072, startLng: -0.1276, endLat: 40.7128, endLng: -74.0060, color: ['#00ffcc', '#0066ff'] }
-  ];
+  // 🌐 ROUTING ARCS
+  world.arcsData([
+    {
+      startLat: 25.276987,
+      startLng: 55.296249,
+      endLat: -1.2921,
+      endLng: 36.8219,
+      color: ['#ff0000', '#ff8800']
+    }
+  ])
+  .arcDashLength(0.5)
+  .arcDashGap(2)
+  .arcDashAnimateTime(2500);
 
-  world
-    .arcsData(arcs)
-    .arcColor('color')
-    .arcDashLength(0.6)
-    .arcDashGap(2)
-    .arcDashInitialGap(() => Math.random())
-    .arcDashAnimateTime(2500);
-
-  // AUTO ROTATION (CONTROL ROOM FEEL)
   world.controls().autoRotate = true;
   world.controls().autoRotateSpeed = 0.6;
+
+  // 🔴 LIVE FEED SYSTEM
+  const feed = document.getElementById("feed");
+
+  const events = [
+    "✔ AI detected food shortage signal in East Africa",
+    "⚠ Emergency request received from Dubai zone",
+    "✔ Aid routing initiated via UK hub",
+    "⚠ High-risk displacement pattern detected",
+    "✔ Global scan cycle completed"
+  ];
+
+  let i = 0;
+
+  setInterval(() => {
+    const div = document.createElement("div");
+    div.className = "event";
+    div.innerText = events[i % events.length];
+    feed.prepend(div);
+
+    if (feed.children.length > 6) {
+      feed.removeChild(feed.lastChild);
+    }
+
+    i++;
+  }, 2000);
+
+  // 🔴 PULSE EFFECT (SIMULATED MOVING CRISIS UPDATE)
+  setInterval(() => {
+    points.push({
+      lat: 30 + Math.random() * 20,
+      lng: 20 + Math.random() * 40,
+      size: 0.5,
+      color: 'red',
+      label: 'New AI Detected Signal'
+    });
+
+    world.pointsData(points);
+  }, 5000);
+
 </script>
 
 </body>
