@@ -1,14 +1,14 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>NexPath AI Dashboard</title>
+  <title>NexPath AI - Fixed Globe</title>
 
   <style>
     body {
       margin: 0;
-      font-family: Arial;
-      background: black;
       overflow: hidden;
+      background: black;
+      font-family: Arial;
       color: white;
     }
 
@@ -16,88 +16,68 @@
       position: fixed;
       width: 100%;
       height: 100%;
-      z-index: 0;
     }
 
     .ui {
       position: absolute;
       top: 20px;
       left: 20px;
-      z-index: 10;
-      width: 320px;
       background: rgba(0,0,0,0.6);
       padding: 20px;
       border-radius: 12px;
-      backdrop-filter: blur(10px);
+      width: 300px;
+      z-index: 10;
     }
 
     .title {
-      font-size: 22px;
       color: #00ffe1;
+      font-size: 20px;
       font-weight: bold;
     }
 
     .card {
       margin-top: 10px;
-      padding: 10px;
-      background: rgba(255,255,255,0.08);
+      padding: 8px;
+      background: rgba(255,255,255,0.1);
       border-radius: 8px;
-    }
-
-    .small {
-      font-size: 13px;
-      opacity: 0.8;
     }
   </style>
 </head>
 
 <body>
 
-<!-- 🌍 GLOBE LAYER -->
 <div id="globe"></div>
 
-<!-- UI LAYER -->
 <div class="ui">
   <div class="title">NexPath AI</div>
-  <div class="small">Live Humanitarian System</div>
-  <div class="small">System Active</div>
-
-  <hr>
-
-  <b>Investor Dashboard</b>
+  <div>Live Humanitarian System</div>
 
   <div class="card">Global Impact: 141</div>
   <div class="card">Aid Delivered: 56</div>
   <div class="card">Active Regions: 12</div>
 
-  <hr>
-
-  <b>Live Requests</b>
-
-  <div class="card">Food crisis in UAE region</div>
-  <div class="card">School support needed</div>
+  <div class="card">Food crisis UAE</div>
+  <div class="card">Education support</div>
   <div class="card">Medical aid request</div>
 </div>
 
-<!-- 🌍 LIBRARIES -->
-<script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
-<script src="https://unpkg.com/globe.gl"></script>
+<!-- ✅ ONLY ONE SAFE GLOBE LIBRARY -->
+<script src="https://unpkg.com/globe.gl@2.32.0/dist/globe.gl.min.js"></script>
 
 <script>
-  const world = Globe()(document.getElementById('globe'))
-    .globeImageUrl('//unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
-    .backgroundColor('black');
+const world = Globe()(document.getElementById('globe'))
+  .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
+  .backgroundColor('black');
 
-  world.controls().autoRotate = true;
-  world.controls().autoRotateSpeed = 0.7;
+world.controls().autoRotate = true;
+world.controls().autoRotateSpeed = 0.6;
 
-  world.pointsData([
-    { lat: 25.276987, lng: 55.296249, size: 0.5, color: 'red' },
-    { lat: -1.2921, lng: 36.8219, size: 0.5, color: 'yellow' },
-    { lat: 48.8566, lng: 2.3522, size: 0.5, color: 'blue' }
-  ])
-  .pointAltitude('size')
-  .pointColor('color');
+world.pointsData([
+  { lat: 25.276987, lng: 55.296249, size: 0.5, color: 'red' },
+  { lat: 0, lng: 0, size: 0.5, color: 'blue' }
+])
+.pointAltitude('size')
+.pointColor('color');
 </script>
 
 </body>
