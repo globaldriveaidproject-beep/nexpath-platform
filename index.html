@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>NexPath AI System</title>
+<title>NexPath AI Interactive System</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
@@ -12,11 +12,10 @@ body {
   margin: 0;
   font-family: 'Orbitron', sans-serif;
   color: white;
-  overflow: hidden;
   background: black;
+  overflow: hidden;
 }
 
-/* 🌍 Globe background */
 #globe-container {
   position: fixed;
   width: 100%;
@@ -24,7 +23,6 @@ body {
   z-index: -2;
 }
 
-/* Glow overlay */
 body::after {
   content: "";
   position: fixed;
@@ -34,44 +32,19 @@ body::after {
   z-index: -1;
 }
 
-/* UI */
 .container {
   padding: 30px;
 }
 
-/* Header */
 .header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
 }
 
-.logo {
-  font-size: 22px;
-  color: cyan;
-}
+.logo { color: cyan; font-size: 22px; }
 
-.nav {
-  opacity: 0.7;
-}
+.hero h1 { color: cyan; }
 
-/* Hero */
-.hero {
-  margin-top: 60px;
-  max-width: 600px;
-}
-
-.hero h1 {
-  font-size: 42px;
-  color: cyan;
-}
-
-.hero p {
-  opacity: 0.8;
-  line-height: 1.6;
-}
-
-/* Panels */
 .panel {
   position: absolute;
   background: rgba(0,0,0,0.4);
@@ -79,38 +52,16 @@ body::after {
   backdrop-filter: blur(15px);
   padding: 20px;
   border-radius: 15px;
-  box-shadow: 0 0 20px rgba(0,255,255,0.2);
 }
 
-/* Positions */
 .top-right { top: 20px; right: 20px; }
 .bottom-left { bottom: 20px; left: 20px; }
 .bottom-right { bottom: 20px; right: 20px; }
 
-/* Stats */
-.stat {
-  font-size: 18px;
-  margin: 5px 0;
-}
-
-/* Crisis */
-.crisis {
-  margin: 5px 0;
-}
-
-.critical {
-  color: red;
-  animation: pulse 1s infinite;
-}
-
+.critical { color: red; }
 .high { color: orange; }
 .low { color: lime; }
 
-@keyframes pulse {
-  0% { opacity: 1; }
-  50% { opacity: 0.4; }
-  100% { opacity: 1; }
-}
 </style>
 </head>
 
@@ -119,44 +70,37 @@ body::after {
 <div id="globe-container"></div>
 
 <div class="container">
+  <div class="header">
+    <div class="logo">🌍 NexPath AI</div>
+    <div>Live System</div>
+  </div>
 
-<div class="header">
-  <div class="logo">🌍 NexPath AI</div>
-  <div class="nav">Home | Mission | Donate</div>
+  <div class="hero">
+    <h1>Interactive Global Intelligence</h1>
+    <p>Click anywhere on the globe to trigger AI analysis.</p>
+  </div>
 </div>
 
-<div class="hero">
-  <h1>Global Intelligence System</h1>
-  <p>
-    AI-powered humanitarian engine detecting crises,
-    predicting risk, and activating global response in real time.
-  </p>
-</div>
-
-</div>
-
-<!-- 📊 Investor Panel -->
+<!-- 📊 Stats -->
 <div class="panel top-right">
-  <div class="stat">Impact: 157</div>
-  <div class="stat">Aid: 58</div>
-  <div class="stat">Regions: 12</div>
-  <div class="stat">Pressure: 71/100</div>
+  <div>Impact: <span id="impact">157</span></div>
+  <div>Aid: <span id="aid">58</span></div>
+  <div>Regions: <span id="regions">12</span></div>
 </div>
 
-<!-- 🚨 Crisis Panel -->
-<div class="panel bottom-left">
-  <div class="crisis critical">UAE – Food Crisis</div>
-  <div class="crisis high">Kenya – Education</div>
-  <div class="crisis low">France – Volunteers</div>
+<!-- 🚨 Crisis -->
+<div class="panel bottom-left" id="crisisPanel">
+  <div class="critical">UAE – Food Crisis</div>
+  <div class="high">Kenya – Education</div>
+  <div class="low">France – Volunteers</div>
 </div>
 
-<!-- 🧠 AI Panel -->
-<div class="panel bottom-right">
+<!-- 🧠 AI -->
+<div class="panel bottom-right" id="aiPanel">
   <b>AI STATUS: ACTIVE</b>
-  <p>Scanning global signals...</p>
+  <p>Click globe to analyze region...</p>
 </div>
 
-<!-- 🌍 THREE JS -->
 <script type="module">
 import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.155/build/three.module.js";
 
@@ -170,22 +114,39 @@ document.getElementById("globe-container").appendChild(renderer.domElement);
 
 /* Earth */
 const geometry = new THREE.SphereGeometry(5, 64, 64);
-
-const texture = new THREE.TextureLoader().load(
-"https://threejs.org/examples/textures/earth_atmos_2048.jpg"
-);
+const texture = new THREE.TextureLoader().load("https://threejs.org/examples/textures/earth_atmos_2048.jpg");
 
 const material = new THREE.MeshStandardMaterial({ map: texture });
-
 const globe = new THREE.Mesh(geometry, material);
 scene.add(globe);
 
-/* Glow light */
+/* Light */
 const light = new THREE.PointLight(0x00ffff, 2);
 light.position.set(10,10,10);
 scene.add(light);
 
 camera.position.z = 10;
+
+/* AI DATA */
+const regions = [
+  { name: "UAE", level: "CRITICAL", msg: "Food supply stress detected. Immediate response required." },
+  { name: "Kenya", level: "HIGH", msg: "Education system under pressure. NGO coordination needed." },
+  { name: "France", level: "LOW", msg: "Volunteer demand increasing gradually." }
+];
+
+/* CLICK DETECTION */
+window.addEventListener("click", () => {
+
+  const randomRegion = regions[Math.floor(Math.random()*regions.length)];
+
+  document.getElementById("aiPanel").innerHTML = `
+    <b>${randomRegion.name}</b><br><br>
+    Severity: ${randomRegion.level}<br><br>
+    🧠 AI ANALYSIS:<br>
+    ${randomRegion.msg}
+  `;
+
+});
 
 /* Animate */
 function animate() {
@@ -193,9 +154,9 @@ function animate() {
   globe.rotation.y += 0.002;
   renderer.render(scene, camera);
 }
-
 animate();
 
+/* Resize */
 window.addEventListener("resize", () => {
   renderer.setSize(window.innerWidth, window.innerHeight);
   camera.aspect = window.innerWidth/window.innerHeight;
