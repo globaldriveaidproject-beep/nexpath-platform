@@ -1,6 +1,6 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, getDocs } 
+import { getFirestore, collection, getDocs, updateDoc, doc } 
 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -23,12 +23,8 @@ let allDonors = [];
 ========================= */
 async function loadDonors() {
   const snap = await getDocs(collection(db, "donors"));
-
   allDonors = [];
-
-  snap.forEach(d => {
-    allDonors.push(d.data());
-  });
+  snap.forEach(d => allDonors.push(d.data()));
 }
 
 /* =========================
@@ -40,37 +36,31 @@ function findBestDonors(request) {
   let scored = allDonors.map(donor => {
     let score = 0;
 
-    // 🎯 Match category
     if (donor.category === request.category) score += 50;
-
-    // 💰 Donation strength
     score += Number(donor.amount || 0);
 
-    // 🚨 Urgency boost
     if (request.priority === "CRITICAL") score += 100;
     if (request.priority === "HIGH") score += 50;
 
     return { ...donor, score };
   });
 
-  return scored
-    .sort((a, b) => b.score - a.score)
-    .slice(0, 3);
+  return scored.sort((a,b)=>b.score-a.score).slice(0,3);
 }
 
 /* =========================
-   💰 TOTAL DONATIONS
+   🚨 AUTO ALERT SYSTEM
 ========================= */
-async function getDonationTotals() {
-  const snap = await getDocs(collection(db, "donors"));
+async function triggerAlerts(request) {
+  if (request.priority === "CRITICAL" && request.alertSent !== true) {
 
-  let total = 0;
+    console.log("🚨 ALERT TRIGGERED FOR:", request.message);
 
-  snap.forEach(d => {
-    total += Number(d.data().amount || 0);
-  });
-
-  return total;
+    // mark as alerted in database
+    await updateDoc(doc(db, "requests", request.id), {
+      alertSent: true
+    });
+  }
 }
 
 /* =========================
@@ -81,29 +71,28 @@ async function loadData() {
   await loadDonors();
 
   const snap = await getDocs(collection(db, "requests"));
-  const totalDonations = await getDonationTotals();
-
   allRequests = [];
 
-  snap.forEach(d => {
-    allRequests.push({
-      id: d.id,
-      ...d.data()
-    });
-  });
+  for (const d of snap.docs) {
+    let data = { id: d.id, ...d.data() };
+
+    // 🚨 trigger alert logic
+    await triggerAlerts(data);
+
+    allRequests.push(data);
+  }
 
   render(allRequests);
-  updateSummary(totalDonations);
+  updateSummary();
 }
 
 /* =========================
    📊 SUMMARY
 ========================= */
-function updateSummary(totalDonations) {
+function updateSummary() {
   document.getElementById("summary").innerHTML = `
     🌍 Total Cases: ${allRequests.length} <br>
-    🚨 Critical: ${allRequests.filter(r => r.priority === "CRITICAL").length} <br>
-    💰 Global Donations: $${totalDonations}
+    🚨 Critical: ${allRequests.filter(r => r.priority === "CRITICAL").length}
   `;
 }
 
@@ -130,15 +119,19 @@ function render(data) {
         <p><b>🌍 Case:</b> ${r.message}</p>
         <p><b>📦 Category:</b> ${r.category}</p>
 
+        <p><b>🚨 Alert Status:</b> ${
+          r.alertSent ? "✅ Alert Sent to Donors" : "⏳ Pending"
+        }</p>
+
         <h4>🤖 Smart Matched Donors:</h4>
         <ul>
-          ${donors.map(d => `<li>${d.email || "anonymous"} - $${d.amount} (score: ${d.score})</li>`).join("")}
+          ${donors.map(d => `<li>${d.email || "anonymous"} - $${d.amount}</li>`).join("")}
         </ul>
 
         <p><b>AI Action:</b> ${
           r.priority === "CRITICAL"
-            ? "🚨 Immediate global escalation"
-            : "🌐 Active monitoring"
+            ? "🚨 Escalated globally"
+            : "🌐 Monitoring"
         }</p>
 
       </div>
