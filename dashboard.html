@@ -7,11 +7,12 @@
 <body style="font-family:Arial;background:#0f172a;color:white;padding:20px">
 
 <h1>🚨 NexPath Global Command Center</h1>
+<p>Real-time humanitarian + funding intelligence system</p>
 
-<p>Real-time humanitarian operations system</p>
-
+<!-- SUMMARY -->
 <div id="summary" style="margin:15px 0; padding:10px; background:#111827; border-radius:10px;"></div>
 
+<!-- FILTERS -->
 <div style="margin:20px 0;">
   <button onclick="filter('ALL')">All</button>
   <button onclick="filter('CRITICAL')">Critical</button>
@@ -19,8 +20,10 @@
   <button onclick="filter('LOW')">Low</button>
 </div>
 
+<!-- LIST -->
 <div id="list"></div>
 
+<!-- MAP -->
 <h2>🌍 Global Activity Map</h2>
 <canvas id="map" width="600" height="300" style="background:#111827;border-radius:10px;"></canvas>
 
@@ -43,32 +46,69 @@ const db = getFirestore(app);
 
 let allRequests = [];
 
-// 🔄 LOAD DATA
+/* =========================
+   💰 DONATION TOTALS ENGINE
+========================= */
+async function getDonationTotals() {
+  const snap = await getDocs(collection(db, "donations"));
+
+  let totals = {};
+
+  snap.forEach(d => {
+    const data = d.data();
+
+    if (!totals[data.requestId]) {
+      totals[data.requestId] = 0;
+    }
+
+    totals[data.requestId] += Number(data.amount);
+  });
+
+  return totals;
+}
+
+/* =========================
+   📊 LOAD DATA
+========================= */
 async function loadData() {
   const snap = await getDocs(collection(db, "requests"));
+  const donationTotals = await getDonationTotals();
 
   allRequests = [];
-  snap.forEach(d => allRequests.push({ id: d.id, ...d.data() }));
+
+  snap.forEach(d => {
+    let data = d.data();
+
+    allRequests.push({
+      id: d.id,
+      ...data,
+      totalDonations: donationTotals[d.id] || 0
+    });
+  });
 
   render(allRequests);
   updateSummary();
   drawMap(allRequests);
 }
 
-// 📊 SUMMARY
+/* =========================
+   📊 SUMMARY
+========================= */
 function updateSummary() {
   let total = allRequests.length;
   let critical = allRequests.filter(r => r.priority === "CRITICAL").length;
   let high = allRequests.filter(r => r.priority === "HIGH").length;
 
   document.getElementById("summary").innerHTML = `
-    Total: ${total} | 
-    <span style="color:red">Critical: ${critical}</span> | 
+    Total Cases: ${total} |
+    <span style="color:red">Critical: ${critical}</span> |
     <span style="color:orange">High: ${high}</span>
   `;
 }
 
-// 📊 RENDER
+/* =========================
+   📊 RENDER
+========================= */
 function render(data) {
   const list = document.getElementById("list");
   list.innerHTML = "";
@@ -82,24 +122,43 @@ function render(data) {
     list.innerHTML += `
       <div style="border:1px solid ${color};padding:10px;margin:10px;border-radius:10px;">
         <h3 style="color:${color}">${r.priority}</h3>
-        <p>${r.message}</p>
-        <p>${r.category}</p>
-        <p>${r.email}</p>
-        <p>${r.status}</p>
+
+        <p><b>Message:</b> ${r.message}</p>
+        <p><b>Category:</b> ${r.category}</p>
+        <p><b>Email:</b> ${r.email}</p>
+        <p><b>Status:</b> ${r.status}</p>
+
+        <p><b>AI Score:</b> ${r.urgencyScore || 0}/100</p>
+        <p><b>Suggestion:</b> ${r.suggestion || "N/A"}</p>
+
+        <p><b>💰 Donations:</b> $${r.totalDonations || 0}</p>
+
+        <p><b>AI Match:</b> ${
+          r.priority === "CRITICAL"
+            ? "🔥 Immediate donor required"
+            : r.urgencyScore > 70
+              ? "⚡ High priority funding recommended"
+              : "💡 Standard support case"
+        }</p>
 
         <button onclick="resolve('${r.id}')">Mark Resolved</button>
+        <button onclick="donatePrompt('${r.id}')">Donate</button>
       </div>
     `;
   });
 }
 
-// 🎯 FILTER
+/* =========================
+   🎯 FILTER
+========================= */
 window.filter = function(type) {
   if (type === "ALL") render(allRequests);
   else render(allRequests.filter(r => r.priority === type));
 };
 
-// 🌍 MAP
+/* =========================
+   🌍 MAP
+========================= */
 function drawMap(data) {
   const canvas = document.getElementById("map");
   const ctx = canvas.getContext("2d");
@@ -120,7 +179,9 @@ function drawMap(data) {
   });
 }
 
-// ✅ RESOLVE
+/* =========================
+   ✅ RESOLVE CASE
+========================= */
 window.resolve = async function(id) {
   await updateDoc(doc(db, "requests", id), {
     status: "resolved"
@@ -129,6 +190,30 @@ window.resolve = async function(id) {
   loadData();
 };
 
+/* =========================
+   💰 DONATE
+========================= */
+window.donatePrompt = async function(requestId) {
+  let amount = prompt("Enter donation amount:");
+  let email = prompt("Your email:");
+
+  if (!amount) return;
+
+  await addDoc(collection(db, "donations"), {
+    requestId: requestId,
+    amount: Number(amount),
+    donorEmail: email || "anonymous",
+    createdAt: Date.now()
+  });
+
+  alert("💰 Donation linked!");
+
+  loadData();
+};
+
+/* =========================
+   🚀 INIT
+========================= */
 loadData();
 setInterval(loadData, 5000);
 
