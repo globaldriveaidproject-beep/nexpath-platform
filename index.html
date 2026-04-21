@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>NexPath AI - Hybrid Intelligence System</title>
+  <title>NexPath AI - Unified Intelligence Engine</title>
 
   <style>
     body {
@@ -23,7 +23,7 @@
       position: absolute;
       top: 20px;
       left: 20px;
-      width: 320px;
+      width: 340px;
       background: rgba(0,0,0,0.7);
       padding: 20px;
       border-radius: 12px;
@@ -32,9 +32,15 @@
     }
 
     .title {
-      color: #00ffe1;
       font-size: 18px;
       font-weight: bold;
+      color: #00ffe1;
+    }
+
+    .section {
+      margin-top: 15px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(255,255,255,0.2);
     }
 
     .card {
@@ -46,22 +52,29 @@
       cursor: pointer;
     }
 
+    .red { color: #ff4d4d; }
+    .orange { color: #ffb84d; }
+    .yellow { color: #ffd24d; }
+
+    /* POPUP */
     .popup {
       position: absolute;
       right: 20px;
       top: 20px;
-      width: 260px;
-      background: rgba(0,0,0,0.8);
+      width: 280px;
+      background: rgba(0,0,0,0.85);
       padding: 15px;
       border-radius: 12px;
-      z-index: 20;
-      display: none;
       border: 1px solid #00ffe1;
+      display: none;
+      z-index: 20;
     }
 
-    .red { color: #ff4d4d; }
-    .orange { color: #ffb84d; }
-    .yellow { color: #ffd24d; }
+    .ai {
+      color: #00ffe1;
+      font-size: 12px;
+      margin-top: 8px;
+    }
   </style>
 </head>
 
@@ -69,33 +82,49 @@
 
 <div id="globe"></div>
 
-<!-- 📊 PANEL -->
+<!-- PANEL -->
 <div class="panel">
-  <div class="title">🌍 NexPath AI Hybrid System</div>
 
-  <div class="card">Global Impact: <span id="impact">143</span></div>
-  <div class="card">Aid Delivered: <span id="aid">56</span></div>
-  <div class="card">Active Regions: <span id="regions">12</span></div>
+  <div class="title">🌍 NexPath AI Unified Engine</div>
+  <div>Live Global Intelligence System</div>
 
-  <hr>
-
-  <div class="card red" onclick="showInfo('UAE', 'CRITICAL Food Crisis - Immediate Aid Required')">
-    UAE - Food Crisis (CRITICAL)
+  <!-- INVESTOR -->
+  <div class="section">
+    <b>📊 Investor Command Layer</b>
+    <div class="card">Global Impact: <span id="impact">144</span></div>
+    <div class="card">Aid Delivered: <span id="aid">56</span></div>
+    <div class="card">Active Regions: <span id="regions">12</span></div>
   </div>
 
-  <div class="card orange" onclick="showInfo('Kenya', 'HIGH Education Support Needed')">
-    Kenya - Education Need (HIGH)
+  <!-- CRISIS -->
+  <div class="section">
+    <b>🚨 Crisis War Room</b>
+    <div class="card red" onclick="openAI('UAE','Food shortage + population density spike detected')">
+      UAE - Food Crisis (CRITICAL)
+    </div>
+
+    <div class="card orange" onclick="openAI('Kenya','Education infrastructure gap + resource shortage')">
+      Kenya - Education Need (HIGH)
+    </div>
+
+    <div class="card yellow" onclick="openAI('France','Volunteer demand increase in urban zones')">
+      France - Volunteers Needed (LOW)
+    </div>
   </div>
 
-  <div class="card yellow" onclick="showInfo('France', 'LOW Volunteer Request Active')">
-    France - Volunteers Needed (LOW)
+  <!-- AI LAYER -->
+  <div class="section">
+    <b>🧠 AI Intelligence Layer</b>
+    <div class="card">Crisis classification engine: ACTIVE</div>
+    <div class="card">Global risk model: RUNNING</div>
   </div>
+
 </div>
 
-<!-- 📡 POPUP -->
+<!-- POPUP -->
 <div id="popup" class="popup"></div>
 
-<!-- 🌍 GLOBE -->
+<!-- GLOBE -->
 <script src="https://unpkg.com/globe.gl@2.32.0/dist/globe.gl.min.js"></script>
 
 <script>
@@ -106,38 +135,58 @@ const world = Globe()(document.getElementById('globe'))
 world.controls().autoRotate = true;
 world.controls().autoRotateSpeed = 0.6;
 
-/* 🌍 CRISIS DATA */
+/* 🌍 DATA */
 const data = [
-  { name: "UAE", lat: 25.276987, lng: 55.296249, level: "CRITICAL", color: "red" },
-  { name: "Kenya", lat: -1.2921, lng: 36.8219, level: "HIGH", color: "orange" },
-  { name: "France", lat: 48.8566, lng: 2.3522, level: "LOW", color: "yellow" }
+  { name:"UAE", lat:25.276987, lng:55.296249, color:"red", level:"CRITICAL" },
+  { name:"Kenya", lat:-1.2921, lng:36.8219, color:"orange", level:"HIGH" },
+  { name:"France", lat:48.8566, lng:2.3522, color:"yellow", level:"LOW" }
 ];
 
 world.pointsData(data)
   .pointAltitude(() => 0.15)
   .pointColor(d => d.color);
 
-/* 🧠 CLICK SYSTEM */
-world.onPointClick(point => {
-  showInfo(point.name, "AI Detected Crisis Zone: " + point.level);
+/* 🧠 CLICK ON GLOBE */
+world.onPointClick(p => {
+  openAI(p.name, "AI detected " + p.level + " level crisis signal");
 });
 
-/* 📡 POPUP FUNCTION */
-function showInfo(location, message) {
+/* 🧠 AI ENGINE */
+function openAI(region, insight) {
+
   const popup = document.getElementById("popup");
   popup.style.display = "block";
+
+  const aiText = generateAI(region, insight);
+
   popup.innerHTML = `
-    <b>${location}</b><br><br>
-    ${message}
+    <b>${region}</b><br><br>
+    ${insight}
+    <div class="ai">🧠 AI Analysis:<br>${aiText}</div>
   `;
 }
 
-/* 📊 LIVE NUMBERS */
+/* 🧠 SIMPLE AI SIMULATION */
+function generateAI(region, insight) {
+
+  if(region === "UAE") {
+    return "High population density + supply chain stress → Immediate food distribution required";
+  }
+
+  if(region === "Kenya") {
+    return "Education access gap detected → Recommend school supply deployment";
+  }
+
+  return "Volunteer engagement spike detected → Low urgency response model";
+}
+
+/* 📊 LIVE SYSTEM */
 setInterval(() => {
-  document.getElementById("impact").innerText = 143 + Math.floor(Math.random() * 5);
-  document.getElementById("aid").innerText = 56 + Math.floor(Math.random() * 2);
+  document.getElementById("impact").innerText = 144 + Math.floor(Math.random()*5);
+  document.getElementById("aid").innerText = 56 + Math.floor(Math.random()*2);
   document.getElementById("regions").innerText = 12;
 }, 2000);
+
 </script>
 
 </body>
