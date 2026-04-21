@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>NexPath AI - Unified Intelligence Engine</title>
+  <title>NexPath AI - Living World Intelligence</title>
 
   <style>
     body {
@@ -23,8 +23,8 @@
       position: absolute;
       top: 20px;
       left: 20px;
-      width: 340px;
-      background: rgba(0,0,0,0.7);
+      width: 350px;
+      background: rgba(0,0,0,0.75);
       padding: 20px;
       border-radius: 12px;
       z-index: 10;
@@ -37,12 +37,6 @@
       color: #00ffe1;
     }
 
-    .section {
-      margin-top: 15px;
-      padding-top: 10px;
-      border-top: 1px solid rgba(255,255,255,0.2);
-    }
-
     .card {
       margin-top: 8px;
       padding: 8px;
@@ -52,16 +46,11 @@
       cursor: pointer;
     }
 
-    .red { color: #ff4d4d; }
-    .orange { color: #ffb84d; }
-    .yellow { color: #ffd24d; }
-
-    /* POPUP */
     .popup {
       position: absolute;
       right: 20px;
       top: 20px;
-      width: 280px;
+      width: 300px;
       background: rgba(0,0,0,0.85);
       padding: 15px;
       border-radius: 12px;
@@ -70,10 +59,10 @@
       z-index: 20;
     }
 
-    .ai {
-      color: #00ffe1;
+    .heat {
       font-size: 12px;
-      margin-top: 8px;
+      margin-top: 5px;
+      color: #ff6666;
     }
   </style>
 </head>
@@ -85,38 +74,27 @@
 <!-- PANEL -->
 <div class="panel">
 
-  <div class="title">🌍 NexPath AI Unified Engine</div>
-  <div>Live Global Intelligence System</div>
+  <div class="title">🌍 NexPath AI Living System</div>
+  <div>Global Intelligence Engine Active</div>
 
-  <!-- INVESTOR -->
-  <div class="section">
-    <b>📊 Investor Command Layer</b>
-    <div class="card">Global Impact: <span id="impact">144</span></div>
-    <div class="card">Aid Delivered: <span id="aid">56</span></div>
-    <div class="card">Active Regions: <span id="regions">12</span></div>
+  <hr>
+
+  <div class="card">Global Impact: <span id="impact">147</span></div>
+  <div class="card">Aid Delivered: <span id="aid">56</span></div>
+  <div class="card">Active Regions: <span id="regions">12</span></div>
+
+  <hr>
+
+  <div class="card" onclick="triggerAI('UAE','CRITICAL')">
+    UAE - Food Crisis (CRITICAL)
   </div>
 
-  <!-- CRISIS -->
-  <div class="section">
-    <b>🚨 Crisis War Room</b>
-    <div class="card red" onclick="openAI('UAE','Food shortage + population density spike detected')">
-      UAE - Food Crisis (CRITICAL)
-    </div>
-
-    <div class="card orange" onclick="openAI('Kenya','Education infrastructure gap + resource shortage')">
-      Kenya - Education Need (HIGH)
-    </div>
-
-    <div class="card yellow" onclick="openAI('France','Volunteer demand increase in urban zones')">
-      France - Volunteers Needed (LOW)
-    </div>
+  <div class="card" onclick="triggerAI('Kenya','HIGH')">
+    Kenya - Education Need (HIGH)
   </div>
 
-  <!-- AI LAYER -->
-  <div class="section">
-    <b>🧠 AI Intelligence Layer</b>
-    <div class="card">Crisis classification engine: ACTIVE</div>
-    <div class="card">Global risk model: RUNNING</div>
+  <div class="card" onclick="triggerAI('France','LOW')">
+    France - Volunteers Needed (LOW)
   </div>
 
 </div>
@@ -128,6 +106,7 @@
 <script src="https://unpkg.com/globe.gl@2.32.0/dist/globe.gl.min.js"></script>
 
 <script>
+
 const world = Globe()(document.getElementById('globe'))
   .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
   .backgroundColor('black');
@@ -135,54 +114,76 @@ const world = Globe()(document.getElementById('globe'))
 world.controls().autoRotate = true;
 world.controls().autoRotateSpeed = 0.6;
 
-/* 🌍 DATA */
-const data = [
-  { name:"UAE", lat:25.276987, lng:55.296249, color:"red", level:"CRITICAL" },
-  { name:"Kenya", lat:-1.2921, lng:36.8219, color:"orange", level:"HIGH" },
-  { name:"France", lat:48.8566, lng:2.3522, color:"yellow", level:"LOW" }
+/* 🌍 CRISIS DATA */
+const crises = [
+  { name:"UAE", lat:25.276987, lng:55.296249, level:"CRITICAL", heat:1.0 },
+  { name:"Kenya", lat:-1.2921, lng:36.8219, level:"HIGH", heat:0.7 },
+  { name:"France", lat:48.8566, lng:2.3522, level:"LOW", heat:0.4 }
 ];
 
-world.pointsData(data)
-  .pointAltitude(() => 0.15)
-  .pointColor(d => d.color);
+world.pointsData(crises)
+  .pointAltitude(d => 0.15 + Math.sin(Date.now()*0.002)*0.03)
+  .pointColor(d => {
+    if(d.level === "CRITICAL") return "red";
+    if(d.level === "HIGH") return "orange";
+    return "yellow";
+  });
 
-/* 🧠 CLICK ON GLOBE */
-world.onPointClick(p => {
-  openAI(p.name, "AI detected " + p.level + " level crisis signal");
-});
+/* 🌡️ LIVING HEAT SYSTEM */
+setInterval(() => {
+
+  world.pointsData(crises.map(c => ({
+    ...c,
+    heat: c.heat + (Math.random() * 0.02 - 0.01)
+  })));
+
+}, 200);
 
 /* 🧠 AI ENGINE */
-function openAI(region, insight) {
+function triggerAI(region, level) {
 
   const popup = document.getElementById("popup");
   popup.style.display = "block";
 
-  const aiText = generateAI(region, insight);
+  const analysis = generateAI(region, level);
 
   popup.innerHTML = `
     <b>${region}</b><br><br>
-    ${insight}
-    <div class="ai">🧠 AI Analysis:<br>${aiText}</div>
+    Severity: ${level}<br><br>
+    <div class="heat">🧠 AI ANALYSIS</div>
+    ${analysis}
   `;
 }
 
-/* 🧠 SIMPLE AI SIMULATION */
-function generateAI(region, insight) {
+/* 🧠 MULTI-LAYER AI REASONING */
+function generateAI(region, level) {
 
-  if(region === "UAE") {
-    return "High population density + supply chain stress → Immediate food distribution required";
+  if(level === "CRITICAL") {
+    return `
+    Cause: High population demand + supply chain stress<br>
+    Effect: Immediate food shortage risk<br>
+    Recommendation: Deploy emergency aid + logistics response
+    `;
   }
 
-  if(region === "Kenya") {
-    return "Education access gap detected → Recommend school supply deployment";
+  if(level === "HIGH") {
+    return `
+    Cause: Infrastructure gap detected<br>
+    Effect: Education service delay<br>
+    Recommendation: Resource redistribution + NGO support
+    `;
   }
 
-  return "Volunteer engagement spike detected → Low urgency response model";
+  return `
+  Cause: Low volunteer engagement<br>
+  Effect: Reduced support coverage<br>
+  Recommendation: Awareness + recruitment drive
+  `;
 }
 
-/* 📊 LIVE SYSTEM */
+/* 📊 LIVE DASHBOARD */
 setInterval(() => {
-  document.getElementById("impact").innerText = 144 + Math.floor(Math.random()*5);
+  document.getElementById("impact").innerText = 147 + Math.floor(Math.random()*5);
   document.getElementById("aid").innerText = 56 + Math.floor(Math.random()*2);
   document.getElementById("regions").innerText = 12;
 }, 2000);
