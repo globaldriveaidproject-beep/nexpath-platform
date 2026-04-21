@@ -1,24 +1,53 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>NexPath AI System</title>
+  <title>NexPath AI Humanitarian Engine</title>
 </head>
 
-<body style="font-family:Arial;background:#0f172a;color:white;text-align:center;padding:40px">
+<body style="font-family:Arial;background:#0f172a;color:white;text-align:center;padding:30px">
 
 <h1>🌍 NexPath AI Humanitarian Engine</h1>
 <p>Global intelligent crisis + donation system</p>
 
+<!-- 🌍 MISSION SECTION -->
+<section style="max-width:800px;margin:30px auto;text-align:left;line-height:1.6;background:#111;padding:20px;border-radius:10px">
+
+  <h2>Our Mission</h2>
+
+  <p>
+    Mankind Global / Helping Hand Community is a global humanitarian movement founded by Tidimalo Konaite, dedicated to restoring dignity, hope, and opportunity to people in need worldwide.
+  </p>
+
+  <p>
+    We provide essential support including food, water, medical assistance, and emergency shelter to vulnerable individuals, including the homeless, displaced, and those in crisis situations.
+  </p>
+
+  <p>
+    We also extend support to individuals in detention, ensuring that even the forgotten are not left without hope, care, or humanity.
+  </p>
+
+  <p>
+    Through compassion, faith, and the teachings of Lord Jesus Christ, we aim to deliver messages of hope in ways that are accessible and understandable to all people.
+  </p>
+
+  <p>
+    This platform combines technology and humanity to create a global response system that connects those in need with those who can help — instantly and intelligently.
+  </p>
+
+</section>
+
+<!-- 📩 INPUTS -->
 <input id="email" placeholder="Email (optional)" style="width:300px;padding:10px"><br><br>
 
-<textarea id="input" placeholder="Describe situation..." style="width:300px;height:120px"></textarea>
+<textarea id="input" placeholder="Describe your situation..." style="width:300px;height:120px"></textarea>
 
 <br><br>
 
-<button onclick="submitRequest()">Submit Request</button>
+<button onclick="submitRequest()" style="padding:10px 20px">Submit Request</button>
 
-<p id="output"></p>
+<p id="output" style="margin-top:20px;"></p>
 
+<!-- 🔥 FIREBASE -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirestore, collection, addDoc } 
@@ -36,6 +65,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+
 // 🧠 URGENCY ENGINE
 function calculateUrgency(text) {
   let score = 0;
@@ -43,12 +73,15 @@ function calculateUrgency(text) {
   if (text.includes("emergency")) score += 40;
   if (text.includes("urgent")) score += 30;
   if (text.includes("homeless")) score += 35;
-  if (text.includes("no food") || text.includes("hungry")) score += 25;
-  if (text.includes("sick") || text.includes("hospital")) score += 40;
+  if (text.includes("hungry")) score += 25;
+  if (text.includes("no food")) score += 25;
+  if (text.includes("sick")) score += 40;
+  if (text.includes("hospital")) score += 40;
   if (text.includes("child")) score += 30;
 
   return Math.min(score, 100);
 }
+
 
 // 💡 AI SUGGESTION ENGINE
 function getSuggestion(text) {
@@ -58,6 +91,7 @@ function getSuggestion(text) {
   if (text.includes("homeless") || text.includes("shelter")) return "Emergency Shelter Required";
   return "General Support Needed";
 }
+
 
 // 🌍 MAIN SYSTEM
 window.submitRequest = async function () {
@@ -73,7 +107,6 @@ window.submitRequest = async function () {
     urgencyScore >= 40 ? "HIGH" : "LOW";
 
   try {
-    // 🧾 SAVE REQUEST
     await addDoc(collection(db, "requests"), {
       message: text,
       email: email || "anonymous",
@@ -81,11 +114,9 @@ window.submitRequest = async function () {
       urgencyScore: urgencyScore,
       suggestion: suggestion,
       status: "pending",
-      totalDonations: 0,
       createdAt: Date.now()
     });
 
-    // 🧹 RESET UI
     document.getElementById("input").value = "";
 
     document.getElementById("output").innerHTML =
