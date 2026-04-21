@@ -1,238 +1,193 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>NexPath AI - Humanitarian System</title>
-
+  <meta charset="UTF-8" />
+  <title>Mankind Global Dashboard</title>
   <style>
     body {
-      font-family: Arial;
-      background: #05070d;
+      font-family: Arial, sans-serif;
+      background: #0a0a0a;
       color: white;
-      margin: 0;
-      padding: 0;
+      padding: 20px;
     }
 
-    header {
-      padding: 20px;
+    h1 {
       text-align: center;
-      background: #0a0f1c;
-      font-size: 24px;
-      font-weight: bold;
-      letter-spacing: 1px;
+      margin-bottom: 30px;
     }
 
-    .container {
+    .card {
+      background: #111;
       padding: 20px;
-      max-width: 900px;
-      margin: auto;
+      margin-bottom: 15px;
+      border-radius: 12px;
+      border-left: 5px solid #00ffcc;
+      box-shadow: 0 0 10px rgba(0,255,204,0.2);
     }
 
-    input, textarea, select {
-      width: 100%;
-      padding: 12px;
-      margin: 8px 0;
-      background: #0a0f1c;
-      border: 1px solid #1c2333;
-      color: white;
-      border-radius: 8px;
+    .critical {
+      border-left: 5px solid red;
     }
 
-    button {
-      padding: 12px;
-      width: 100%;
-      background: #00e676;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: bold;
+    .high {
+      border-left: 5px solid orange;
     }
 
-    h2 {
-      margin-top: 40px;
+    .medium {
+      border-left: 5px solid yellow;
+    }
+
+    .low {
+      border-left: 5px solid green;
     }
   </style>
 </head>
 
 <body>
 
-<header>
-  🌍 NexPath AI — Humanitarian Intelligence System
-</header>
+<h1>🌍 Mankind Global AI Dashboard</h1>
 
-<div class="container">
-
-  <!-- REQUEST FORM -->
-  <h2>Request Help</h2>
-
-  <select id="category">
-    <option value="food">Food</option>
-    <option value="medical">Medical</option>
-    <option value="shelter">Shelter</option>
-  </select>
-
-  <textarea id="message" placeholder="Describe your situation..."></textarea>
-
-  <button onclick="submitRequest()">Submit Request</button>
-
-  <!-- DASHBOARD -->
-  <h2>Live Requests Dashboard</h2>
-  <div id="list"></div>
-
-</div>
+<div id="requests"></div>
 
 <script>
-let requests = [];
 
-let donors = [
-  { donorEmail: "aid@global.org", interests: ["food","medical"], amount: 500 },
-  { donorEmail: "help@humanity.org", interests: ["shelter"], amount: 300 },
-  { donorEmail: "care@world.org", interests: ["food","shelter"], amount: 700 }
+/* =========================
+   📦 SAMPLE REQUESTS
+========================= */
+
+let requests = [
+  {
+    message: "We need urgent food and water for 20 people",
+    category: "Food",
+    urgencyScore: 95,
+    priority: "CRITICAL"
+  },
+  {
+    message: "School supplies needed for children",
+    category: "Education",
+    urgencyScore: 70,
+    priority: "HIGH"
+  },
+  {
+    message: "Looking for volunteers",
+    category: "Volunteering",
+    urgencyScore: 40,
+    priority: "MEDIUM"
+  }
 ];
 
-function analyzeUrgency(text) {
-  let score = 0;
 
-  if (!text) return score;
+/* =========================
+   👤 DONORS DATABASE
+========================= */
 
-  text = text.toLowerCase();
+let donors = [
+  {
+    name: "Global Food Aid",
+    donorEmail: "donor1@email.com",
+    interests: ["Food"]
+  },
+  {
+    name: "Education Fund Org",
+    donorEmail: "donor2@email.com",
+    interests: ["Education"]
+  },
+  {
+    name: "Volunteer Group",
+    donorEmail: "donor3@email.com",
+    interests: ["Volunteering"]
+  }
+];
 
-  if (text.includes("urgent")) score += 30;
-  if (text.includes("hungry")) score += 25;
-  if (text.includes("danger")) score += 40;
-  if (text.includes("homeless")) score += 35;
-  if (text.includes("help")) score += 10;
 
-  return score;
-}
-
-function detectPriority(score) {
-  if (score >= 60) return "CRITICAL";
-  if (score >= 30) return "HIGH";
-  return "NORMAL";
-}
+/* =========================
+   🎯 FIND MATCHING DONORS
+========================= */
 
 function findBestDonors(request) {
-  if (!request || !request.category) return [];
-
-  return donors
-    .map(donor => {
-      let score = 0;
-
-      if (donor.interests.includes(request.category)) {
-        score += 50;
-      }
-
-      if (donor.amount >= request.urgencyScore * 2) {
-        score += 30;
-      }
-
-      if (request.priority === "CRITICAL") {
-        score += 20;
-      }
-
-      return { ...donor, score };
-    })
-    .sort((a, b) => b.score - a.score)
-    .slice(0, 3);
+  return donors.filter(d => d.interests.includes(request.category));
 }
 
-function submitRequest() {
-  let category = document.getElementById("category").value;
-  let message = document.getElementById("message").value;
 
-  let urgencyScore = analyzeUrgency(message);
-  let priority = detectPriority(urgencyScore);
+/* =========================
+   📧 AUTO EMAIL ALERT SYSTEM
+========================= */
 
-  let newRequest = {
-    id: Date.now(),
-    category,
-    message,
-    urgencyScore,
-    priority,
-    totalDonations: Math.floor(Math.random() * 500)
-  };
+function triggerEmailAlert(request, donorsList) {
 
-  requests.push(newRequest);
-  render(requests);
+  if (request.priority !== "CRITICAL") return;
 
-  document.getElementById("message").value = "";
-}
+  donorsList.forEach(donor => {
 
-function render(data) {
-  const list = document.getElementById("list");
-  list.innerHTML = "";
+    const subject = encodeURIComponent("🚨 Urgent Help Needed - Global Drive Aid");
 
-  data.slice().reverse().forEach(r => {
+    const body = encodeURIComponent(`
+Hello,
 
-    let color =
-      r.priority === "CRITICAL" ? "#ff3b3b" :
-      r.priority === "HIGH" ? "#ff9800" : "#00e676";
+An urgent request has been detected on the platform.
 
-    let donors = findBestDonors(r);
+📌 Message:
+${request.message}
 
-    let progress = Math.min((r.totalDonations / 1000) * 100, 100);
+📊 AI Urgency Score: ${request.urgencyScore}
+📂 Category: ${request.category}
 
-    list.innerHTML += `
-      <div style="
-        border:1px solid ${color};
-        padding:15px;
-        margin:15px 0;
-        border-radius:12px;
-        background:#0a0f1c;
-        box-shadow:0 0 15px ${color}33;
-      ">
+This case requires immediate attention.
 
-        <h3 style="color:${color};">
-          ${r.priority}
-        </h3>
+Please log into the platform or respond as soon as possible.
 
-        <p><b>Category:</b> ${r.category}</p>
+— Mankind Global / Helping Hand Community
+Founder: Tidimalo Konate
+    `);
 
-        <p>${r.message}</p>
+    const mailtoLink = `mailto:${donor.donorEmail}?subject=${subject}&body=${body}`;
 
-        <p><b>AI Score:</b> ${r.urgencyScore}</p>
+    console.log("📧 Email Prepared:", mailtoLink);
 
-        <!-- PROGRESS -->
-        <div style="margin:10px 0;">
-          <div style="height:10px;background:#222;border-radius:10px;">
-            <div style="
-              width:${progress}%;
-              height:10px;
-              border-radius:10px;
-              background:${color};
-              transition:0.5s;
-            "></div>
-          </div>
-          <small>$${r.totalDonations} raised</small>
-        </div>
-
-        <!-- DONORS -->
-        <p><b>AI Recommended Donors:</b></p>
-        <ul>
-          ${
-            donors.length > 0
-              ? donors.map(d =>
-                  `<li>${d.donorEmail} — $${d.amount} (Score: ${d.score})</li>`
-                ).join("")
-              : "<li>No match yet</li>"
-          }
-        </ul>
-
-        <!-- AI ACTION -->
-        <p>
-          <b>AI Action:</b>
-          ${
-            r.priority === "CRITICAL"
-              ? "🚨 Deploy emergency funding"
-              : "📊 Monitor & match donors"
-          }
-        </p>
-
-      </div>
-    `;
+    // Opens email draft
+    window.open(mailtoLink, "_blank");
   });
 }
+
+
+/* =========================
+   🎨 RENDER DASHBOARD
+========================= */
+
+function render() {
+
+  let container = document.getElementById("requests");
+  container.innerHTML = "";
+
+  requests.forEach(r => {
+
+    let donorsMatched = findBestDonors(r);
+
+    // 🚨 Trigger alerts
+    triggerEmailAlert(r, donorsMatched);
+
+    let div = document.createElement("div");
+    div.className = "card " + r.priority.toLowerCase();
+
+    div.innerHTML = `
+      <h3>${r.message}</h3>
+      <p>Category: ${r.category}</p>
+      <p>Urgency Score: ${r.urgencyScore}</p>
+      <p>Priority: ${r.priority}</p>
+      <p>Matched Donors: ${donorsMatched.map(d => d.name).join(", ")}</p>
+    `;
+
+    container.appendChild(div);
+  });
+}
+
+
+/* =========================
+   🚀 START SYSTEM
+========================= */
+
+render();
+
 </script>
 
 </body>
