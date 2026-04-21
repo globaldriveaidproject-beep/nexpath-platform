@@ -8,220 +8,189 @@
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
 
 <style>
-
 body {
     margin: 0;
     font-family: 'Orbitron', sans-serif;
     color: white;
-    overflow-x: hidden;
-    background: radial-gradient(circle at center, #001f3f, #000000);
+    overflow: hidden;
+    background: black;
 }
 
-/* Animated glowing overlay */
-body::before {
-    content: "";
+/* Globe background */
+#globe-container {
     position: fixed;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle, rgba(0,255,255,0.08), transparent 60%);
-    animation: moveGlow 10s linear infinite;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
 }
 
-@keyframes moveGlow {
-    0% { transform: translate(-25%, -25%); }
-    50% { transform: translate(-10%, -10%); }
-    100% { transform: translate(-25%, -25%); }
+/* UI overlay */
+.overlay {
+    position: relative;
+    z-index: 10;
+    padding: 20px;
 }
 
 /* NAV */
 nav {
     display: flex;
     justify-content: space-between;
-    padding: 20px;
-    background: rgba(0,0,0,0.5);
-    backdrop-filter: blur(15px);
 }
 
 nav h1 {
     color: cyan;
-    text-shadow: 0 0 10px cyan;
-}
-
-nav a {
-    color: white;
-    margin-left: 20px;
-    text-decoration: none;
-}
-
-/* HERO */
-.hero {
-    text-align: center;
-    padding: 100px 20px;
-}
-
-.hero h2 {
-    font-size: 42px;
-    color: cyan;
-    text-shadow: 0 0 15px cyan;
-}
-
-.hero p {
-    max-width: 650px;
-    margin: auto;
-    opacity: 0.9;
-}
-
-/* BUTTON */
-.btn {
-    display: inline-block;
-    margin-top: 25px;
-    padding: 14px 30px;
-    border-radius: 30px;
-    background: linear-gradient(90deg, cyan, blue);
-    color: white;
-    text-decoration: none;
-    box-shadow: 0 0 15px cyan;
-    transition: 0.3s;
-}
-
-.btn:hover {
-    transform: scale(1.05);
-    box-shadow: 0 0 25px cyan;
 }
 
 /* DASHBOARD */
 .dashboard {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px,1fr));
-    gap: 25px;
-    padding: 40px;
+    gap: 20px;
+    margin-top: 40px;
 }
 
-/* CARD */
 .card {
-    background: rgba(255,255,255,0.05);
-    padding: 25px;
-    border-radius: 20px;
-    backdrop-filter: blur(20px);
-    text-align: center;
-    border: 1px solid rgba(0,255,255,0.2);
-    box-shadow: 0 0 15px rgba(0,255,255,0.1);
-    transition: 0.3s;
-}
-
-.card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 0 25px rgba(0,255,255,0.3);
-}
-
-.card h3 {
-    color: cyan;
-}
-
-/* PULSE EFFECT */
-.pulse {
-    animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-    0% { text-shadow: 0 0 5px red; }
-    50% { text-shadow: 0 0 20px red; }
-    100% { text-shadow: 0 0 5px red; }
-}
-
-/* FOOTER */
-footer {
-    text-align: center;
+    background: rgba(0,0,0,0.5);
     padding: 20px;
-    opacity: 0.7;
+    border-radius: 15px;
+    backdrop-filter: blur(10px);
+    border: 1px solid cyan;
 }
+
+.critical { color: red; }
+.high { color: orange; }
+.low { color: lime; }
 
 </style>
 </head>
 
 <body>
 
+<div id="globe-container"></div>
+
+<div class="overlay">
+
 <nav>
     <h1>🌍 NexPath AI</h1>
-    <div>
-        <a href="#">Home</a>
-        <a href="#">Mission</a>
-        <a href="#">Donate</a>
-    </div>
+    <div>Home | Mission | Donate</div>
 </nav>
 
-<section class="hero">
-    <h2>NexPath AI Global Intelligence System</h2>
+<h2>Global Intelligence System</h2>
 
-    <p>
-    A real-time humanitarian intelligence engine powered by artificial intelligence.
-    Tracking global crises, predicting needs, and coordinating life-saving support across nations.
-    </p>
+<div class="dashboard">
 
-    <p style="margin-top:10px; opacity:0.8;">
-    Built under Mankind Global / Helping Hand Community.
-    </p>
+<div class="card">
+<h3>Global Impact</h3>
+<p>157</p>
+</div>
 
-    <a href="#" class="btn">Enter Live System</a>
-</section>
+<div class="card">
+<h3>Aid Delivered</h3>
+<p>58</p>
+</div>
 
-<section class="dashboard">
+<div class="card">
+<h3>Active Regions</h3>
+<p>12</p>
+</div>
 
-    <div class="card">
-        <h3>Global Impact</h3>
-        <p>157</p>
-    </div>
+<div class="card">
+<h3>Global Pressure</h3>
+<p>71 / 100</p>
+</div>
 
-    <div class="card">
-        <h3>Aid Delivered</h3>
-        <p>58</p>
-    </div>
+</div>
 
-    <div class="card">
-        <h3>Active Regions</h3>
-        <p>12</p>
-    </div>
+<div class="dashboard">
 
-    <div class="card">
-        <h3>Global Pressure Index</h3>
-        <p>71 / 100</p>
-    </div>
+<div class="card critical">UAE - Food Crisis</div>
+<div class="card high">Kenya - Education</div>
+<div class="card low">France - Volunteers</div>
 
-</section>
+</div>
 
-<section class="dashboard">
+</div>
 
-    <div class="card pulse">
-        <h3>🚨 UAE</h3>
-        <p>Food Crisis (CRITICAL)</p>
-    </div>
+<!-- ✅ CLEAN THREE.JS (NO CONFLICT) -->
+<script type="module">
 
-    <div class="card">
-        <h3>🌍 Kenya</h3>
-        <p>Education Need (HIGH)</p>
-    </div>
+import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.155/build/three.module.js";
 
-    <div class="card">
-        <h3>🇫🇷 France</h3>
-        <p>Volunteers Needed (LOW)</p>
-    </div>
+const scene = new THREE.Scene();
 
-</section>
+const camera = new THREE.PerspectiveCamera(
+75,
+window.innerWidth / window.innerHeight,
+0.1,
+1000
+);
 
-<section class="dashboard">
-    <div class="card">
-        <h3>🧠 AI Analysis</h3>
-        <p>
-        Education resource gap fluctuating.<br>
-        Infrastructure stabilizing.<br><br>
-        Recommendation: NGO coordination required.
-        </p>
-    </div>
-</section>
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.getElementById("globe-container").appendChild(renderer.domElement);
 
-<footer>
-    © 2026 NexPath AI — Mankind Global / Helping Hand Community
-</footer>
+/* Earth */
+const geometry = new THREE.SphereGeometry(5, 64, 64);
+
+const texture = new THREE.TextureLoader().load(
+"https://threejs.org/examples/textures/earth_atmos_2048.jpg"
+);
+
+const material = new THREE.MeshStandardMaterial({
+map: texture
+});
+
+const globe = new THREE.Mesh(geometry, material);
+scene.add(globe);
+
+/* Light */
+const light = new THREE.PointLight(0xffffff, 2);
+light.position.set(10, 10, 10);
+scene.add(light);
+
+/* Crisis markers */
+function createMarker(color, lat, lon) {
+    const marker = new THREE.Mesh(
+        new THREE.SphereGeometry(0.1, 16, 16),
+        new THREE.MeshBasicMaterial({ color })
+    );
+
+    const phi = (90 - lat) * (Math.PI / 180);
+    const theta = (lon + 180) * (Math.PI / 180);
+
+    marker.position.set(
+        -5 * Math.sin(phi) * Math.cos(theta),
+        5 * Math.cos(phi),
+        5 * Math.sin(phi) * Math.sin(theta)
+    );
+
+    scene.add(marker);
+}
+
+/* UAE, Kenya, France */
+createMarker(0xff0000, 25.2, 55.3);
+createMarker(0xffaa00, -1.2, 36.8);
+createMarker(0x00ff00, 46.2, 2.2);
+
+camera.position.z = 10;
+
+/* Animation */
+function animate() {
+    requestAnimationFrame(animate);
+    globe.rotation.y += 0.002;
+    renderer.render(scene, camera);
+}
+
+animate();
+
+/* Resize fix */
+window.addEventListener("resize", () => {
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+});
+
+</script>
 
 </body>
 </html>
