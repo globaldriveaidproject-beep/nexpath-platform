@@ -1,148 +1,239 @@
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, getDocs, updateDoc, doc } 
-from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>NexPath AI - Humanitarian System</title>
 
-const firebaseConfig = {
-  apiKey: "YOUR_KEY",
-  authDomain: "nexpath-platform.firebaseapp.com",
-  projectId: "nexpath-platform",
-  storageBucket: "nexpath-platform.firebasestorage.app",
-  messagingSenderId: "1094642467861",
-  appId: "1:1094642467861:web:a60226b4d96b57a2c8fa1c"
-};
+  <style>
+    body {
+      font-family: Arial;
+      background: #05070d;
+      color: white;
+      margin: 0;
+      padding: 0;
+    }
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+    header {
+      padding: 20px;
+      text-align: center;
+      background: #0a0f1c;
+      font-size: 24px;
+      font-weight: bold;
+      letter-spacing: 1px;
+    }
 
-let allRequests = [];
-let allDonors = [];
+    .container {
+      padding: 20px;
+      max-width: 900px;
+      margin: auto;
+    }
 
-/* =========================
-   💰 LOAD DONORS
-========================= */
-async function loadDonors() {
-  const snap = await getDocs(collection(db, "donors"));
-  allDonors = [];
-  snap.forEach(d => allDonors.push(d.data()));
+    input, textarea, select {
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0;
+      background: #0a0f1c;
+      border: 1px solid #1c2333;
+      color: white;
+      border-radius: 8px;
+    }
+
+    button {
+      padding: 12px;
+      width: 100%;
+      background: #00e676;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    h2 {
+      margin-top: 40px;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  🌍 NexPath AI — Humanitarian Intelligence System
+</header>
+
+<div class="container">
+
+  <!-- REQUEST FORM -->
+  <h2>Request Help</h2>
+
+  <select id="category">
+    <option value="food">Food</option>
+    <option value="medical">Medical</option>
+    <option value="shelter">Shelter</option>
+  </select>
+
+  <textarea id="message" placeholder="Describe your situation..."></textarea>
+
+  <button onclick="submitRequest()">Submit Request</button>
+
+  <!-- DASHBOARD -->
+  <h2>Live Requests Dashboard</h2>
+  <div id="list"></div>
+
+</div>
+
+<script>
+let requests = [];
+
+let donors = [
+  { donorEmail: "aid@global.org", interests: ["food","medical"], amount: 500 },
+  { donorEmail: "help@humanity.org", interests: ["shelter"], amount: 300 },
+  { donorEmail: "care@world.org", interests: ["food","shelter"], amount: 700 }
+];
+
+function analyzeUrgency(text) {
+  let score = 0;
+
+  if (!text) return score;
+
+  text = text.toLowerCase();
+
+  if (text.includes("urgent")) score += 30;
+  if (text.includes("hungry")) score += 25;
+  if (text.includes("danger")) score += 40;
+  if (text.includes("homeless")) score += 35;
+  if (text.includes("help")) score += 10;
+
+  return score;
 }
 
-/* =========================
-   🤖 SMART MATCH ENGINE
-========================= */
+function detectPriority(score) {
+  if (score >= 60) return "CRITICAL";
+  if (score >= 30) return "HIGH";
+  return "NORMAL";
+}
+
 function findBestDonors(request) {
-  if (!allDonors.length) return [];
+  if (!request || !request.category) return [];
 
-  let scored = allDonors.map(donor => {
-    let score = 0;
+  return donors
+    .map(donor => {
+      let score = 0;
 
-    if (donor.category === request.category) score += 50;
-    score += Number(donor.amount || 0);
+      if (donor.interests.includes(request.category)) {
+        score += 50;
+      }
 
-    if (request.priority === "CRITICAL") score += 100;
-    if (request.priority === "HIGH") score += 50;
+      if (donor.amount >= request.urgencyScore * 2) {
+        score += 30;
+      }
 
-    return { ...donor, score };
-  });
+      if (request.priority === "CRITICAL") {
+        score += 20;
+      }
 
-  return scored.sort((a,b)=>b.score-a.score).slice(0,3);
+      return { ...donor, score };
+    })
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 3);
 }
 
-/* =========================
-   🚨 AUTO ALERT SYSTEM
-========================= */
-async function triggerAlerts(request) {
-  if (request.priority === "CRITICAL" && request.alertSent !== true) {
+function submitRequest() {
+  let category = document.getElementById("category").value;
+  let message = document.getElementById("message").value;
 
-    console.log("🚨 ALERT TRIGGERED FOR:", request.message);
+  let urgencyScore = analyzeUrgency(message);
+  let priority = detectPriority(urgencyScore);
 
-    // mark as alerted in database
-    await updateDoc(doc(db, "requests", request.id), {
-      alertSent: true
-    });
-  }
+  let newRequest = {
+    id: Date.now(),
+    category,
+    message,
+    urgencyScore,
+    priority,
+    totalDonations: Math.floor(Math.random() * 500)
+  };
+
+  requests.push(newRequest);
+  render(requests);
+
+  document.getElementById("message").value = "";
 }
 
-/* =========================
-   📊 LOAD DATA
-========================= */
-async function loadData() {
-
-  await loadDonors();
-
-  const snap = await getDocs(collection(db, "requests"));
-  allRequests = [];
-
-  for (const d of snap.docs) {
-    let data = { id: d.id, ...d.data() };
-
-    // 🚨 trigger alert logic
-    await triggerAlerts(data);
-
-    allRequests.push(data);
-  }
-
-  render(allRequests);
-  updateSummary();
-}
-
-/* =========================
-   📊 SUMMARY
-========================= */
-function updateSummary() {
-  document.getElementById("summary").innerHTML = `
-    🌍 Total Cases: ${allRequests.length} <br>
-    🚨 Critical: ${allRequests.filter(r => r.priority === "CRITICAL").length}
-  `;
-}
-
-/* =========================
-   📊 RENDER
-========================= */
 function render(data) {
   const list = document.getElementById("list");
   list.innerHTML = "";
 
-  data.reverse().forEach(r => {
+  data.slice().reverse().forEach(r => {
 
     let color =
-      r.priority === "CRITICAL" ? "red" :
-      r.priority === "HIGH" ? "orange" : "lightgreen";
+      r.priority === "CRITICAL" ? "#ff3b3b" :
+      r.priority === "HIGH" ? "#ff9800" : "#00e676";
 
     let donors = findBestDonors(r);
 
+    let progress = Math.min((r.totalDonations / 1000) * 100, 100);
+
     list.innerHTML += `
-      <div style="border:1px solid ${color};padding:15px;margin:10px;border-radius:12px;">
+      <div style="
+        border:1px solid ${color};
+        padding:15px;
+        margin:15px 0;
+        border-radius:12px;
+        background:#0a0f1c;
+        box-shadow:0 0 15px ${color}33;
+      ">
 
-        <h3 style="color:${color}">${r.priority}</h3>
+        <h3 style="color:${color};">
+          ${r.priority}
+        </h3>
 
-        <p><b>🌍 Case:</b> ${r.message}</p>
-        <p><b>📦 Category:</b> ${r.category}</p>
+        <p><b>Category:</b> ${r.category}</p>
 
-        <p><b>🚨 Alert Status:</b> ${
-          r.alertSent ? "✅ Alert Sent to Donors" : "⏳ Pending"
-        }</p>
+        <p>${r.message}</p>
 
-        <h4>🤖 Smart Matched Donors:</h4>
+        <p><b>AI Score:</b> ${r.urgencyScore}</p>
+
+        <!-- PROGRESS -->
+        <div style="margin:10px 0;">
+          <div style="height:10px;background:#222;border-radius:10px;">
+            <div style="
+              width:${progress}%;
+              height:10px;
+              border-radius:10px;
+              background:${color};
+              transition:0.5s;
+            "></div>
+          </div>
+          <small>$${r.totalDonations} raised</small>
+        </div>
+
+        <!-- DONORS -->
+        <p><b>AI Recommended Donors:</b></p>
         <ul>
-          ${donors.map(d => `<li>${d.email || "anonymous"} - $${d.amount}</li>`).join("")}
+          ${
+            donors.length > 0
+              ? donors.map(d =>
+                  `<li>${d.donorEmail} — $${d.amount} (Score: ${d.score})</li>`
+                ).join("")
+              : "<li>No match yet</li>"
+          }
         </ul>
 
-        <p><b>AI Action:</b> ${
-          r.priority === "CRITICAL"
-            ? "🚨 Escalated globally"
-            : "🌐 Monitoring"
-        }</p>
+        <!-- AI ACTION -->
+        <p>
+          <b>AI Action:</b>
+          ${
+            r.priority === "CRITICAL"
+              ? "🚨 Deploy emergency funding"
+              : "📊 Monitor & match donors"
+          }
+        </p>
 
       </div>
     `;
   });
 }
-
-/* =========================
-   🚀 INIT
-========================= */
-loadData();
-setInterval(loadData, 5000);
-
 </script>
+
+</body>
+</html>
