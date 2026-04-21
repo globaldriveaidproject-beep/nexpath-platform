@@ -1,239 +1,103 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<title>NexPath AI – Global System</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NexPath AI Dashboard</title>
 
-<!-- Three.js -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial;
+      background: black;
+      overflow: hidden;
+      color: white;
+    }
 
-<style>
-body {
-  margin: 0;
-  font-family: 'Segoe UI', sans-serif;
-  background: black;
-  color: white;
-  overflow-x: hidden;
-}
+    #globe {
+      position: fixed;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+    }
 
-/* GLOBAL GLOBE BACKGROUND */
-#globe-bg {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: -2;
-}
+    .ui {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      z-index: 10;
+      width: 320px;
+      background: rgba(0,0,0,0.6);
+      padding: 20px;
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+    }
 
-/* DARK OVERLAY */
-.overlay {
-  position: fixed;
-  width: 100%;
-  height: 100%;
-  background: radial-gradient(circle, rgba(0,0,0,0.4), black 80%);
-  z-index: -1;
-}
+    .title {
+      font-size: 22px;
+      color: #00ffe1;
+      font-weight: bold;
+    }
 
-/* SECTION STYLE */
-section {
-  padding: 100px 20px;
-  text-align: center;
-}
+    .card {
+      margin-top: 10px;
+      padding: 10px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 8px;
+    }
 
-/* GLASS EFFECT */
-.card {
-  background: rgba(255,255,255,0.05);
-  border-radius: 20px;
-  padding: 30px;
-  backdrop-filter: blur(15px);
-  margin: 20px auto;
-  max-width: 800px;
-}
-
-/* TITLES */
-h1 {
-  font-size: 3em;
-  color: #00ffe1;
-  text-shadow: 0 0 20px #00ffe1;
-}
-
-h2 {
-  color: #00ffe1;
-}
-
-/* BUTTON */
-button {
-  background: linear-gradient(45deg, #00ffe1, #0077ff);
-  border: none;
-  padding: 12px 25px;
-  border-radius: 30px;
-  color: black;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-/* INPUT */
-input, textarea {
-  width: 80%;
-  padding: 12px;
-  margin: 10px;
-  border-radius: 10px;
-  border: none;
-}
-
-/* STATS */
-.stats {
-  display: flex;
-  justify-content: center;
-  gap: 40px;
-  flex-wrap: wrap;
-}
-
-.stat-box {
-  font-size: 1.5em;
-}
-
-/* FADE ANIMATION */
-.fade {
-  opacity: 0;
-  transform: translateY(40px);
-  transition: 1s;
-}
-
-.fade.show {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-</style>
+    .small {
+      font-size: 13px;
+      opacity: 0.8;
+    }
+  </style>
 </head>
 
 <body>
 
-<div id="globe-bg"></div>
-<div class="overlay"></div>
+<!-- 🌍 GLOBE LAYER -->
+<div id="globe"></div>
 
-<!-- HERO -->
-<section class="fade">
-  <h1>NexPath AI</h1>
-  <p>Live Humanitarian System</p>
-  <p>System Active</p>
-</section>
+<!-- UI LAYER -->
+<div class="ui">
+  <div class="title">NexPath AI</div>
+  <div class="small">Live Humanitarian System</div>
+  <div class="small">System Active</div>
 
-<!-- DASHBOARD -->
-<section class="fade">
-  <div class="card">
-    <h2>Investor Dashboard</h2>
-    <div class="stats">
-      <div class="stat-box">Global Impact<br><b id="impact">0</b></div>
-      <div class="stat-box">Aid Delivered<br><b id="aid">0</b></div>
-      <div class="stat-box">Active Regions<br><b>12</b></div>
-    </div>
-  </div>
-</section>
+  <hr>
 
-<!-- REQUEST HELP -->
-<section class="fade">
-  <div class="card">
-    <h2>Request Help</h2>
-    <input id="email" placeholder="Email (optional)">
-    <textarea id="message" placeholder="Type your request..."></textarea>
-    <br>
-    <button onclick="submitRequest()">Submit</button>
-  </div>
-</section>
+  <b>Investor Dashboard</b>
 
-<!-- LIVE REQUESTS -->
-<section class="fade">
-  <div class="card">
-    <h2>Live Requests (Admin)</h2>
-    <div id="requests"></div>
-  </div>
-</section>
+  <div class="card">Global Impact: 141</div>
+  <div class="card">Aid Delivered: 56</div>
+  <div class="card">Active Regions: 12</div>
+
+  <hr>
+
+  <b>Live Requests</b>
+
+  <div class="card">Food crisis in UAE region</div>
+  <div class="card">School support needed</div>
+  <div class="card">Medical aid request</div>
+</div>
+
+<!-- 🌍 LIBRARIES -->
+<script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
+<script src="https://unpkg.com/globe.gl"></script>
 
 <script>
-/* 🌍 3D GLOBE */
-const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+  const world = Globe()(document.getElementById('globe'))
+    .globeImageUrl('//unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
+    .backgroundColor('black');
 
-const renderer = new THREE.WebGLRenderer({ alpha: true });
-renderer.setSize(window.innerWidth, window.innerHeight);
-document.getElementById('globe-bg').appendChild(renderer.domElement);
+  world.controls().autoRotate = true;
+  world.controls().autoRotateSpeed = 0.7;
 
-const geometry = new THREE.SphereGeometry(5, 64, 64);
-
-const texture = new THREE.TextureLoader().load('https://threejs.org/examples/textures/earth_atmos_2048.jpg');
-
-const material = new THREE.MeshStandardMaterial({
-  map: texture
-});
-
-const globe = new THREE.Mesh(geometry, material);
-scene.add(globe);
-
-/* LIGHT */
-const light = new THREE.PointLight(0x00ffff, 2);
-light.position.set(10, 10, 10);
-scene.add(light);
-
-camera.position.z = 10;
-
-/* ANIMATION */
-function animate() {
-  requestAnimationFrame(animate);
-  globe.rotation.y += 0.002;
-  renderer.render(scene, camera);
-}
-animate();
-
-/* REQUEST SYSTEM */
-let requests = [];
-
-function submitRequest() {
-  const email = document.getElementById("email").value || "N/A";
-  const message = document.getElementById("message").value;
-
-  if (!message) return alert("Enter a message");
-
-  requests.push({email, message});
-  renderRequests();
-}
-
-function renderRequests() {
-  const container = document.getElementById("requests");
-  container.innerHTML = "";
-
-  requests.forEach(r => {
-    container.innerHTML += `
-      <p>Email: ${r.email}<br>Message: ${r.message}</p>
-    `;
-  });
-}
-
-/* COUNTER ANIMATION */
-let impact = 0;
-let aid = 0;
-
-setInterval(() => {
-  impact += Math.floor(Math.random()*10);
-  aid += Math.floor(Math.random()*5);
-
-  document.getElementById("impact").innerText = impact;
-  document.getElementById("aid").innerText = aid;
-}, 2000);
-
-/* SCROLL ANIMATION */
-const fades = document.querySelectorAll('.fade');
-window.addEventListener('scroll', () => {
-  fades.forEach(el => {
-    const top = el.getBoundingClientRect().top;
-    if (top < window.innerHeight - 100) {
-      el.classList.add('show');
-    }
-  });
-});
+  world.pointsData([
+    { lat: 25.276987, lng: 55.296249, size: 0.5, color: 'red' },
+    { lat: -1.2921, lng: 36.8219, size: 0.5, color: 'yellow' },
+    { lat: 48.8566, lng: 2.3522, size: 0.5, color: 'blue' }
+  ])
+  .pointAltitude('size')
+  .pointColor('color');
 </script>
 
 </body>
