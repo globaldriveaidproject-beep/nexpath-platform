@@ -7,9 +7,10 @@
 <body style="font-family:Arial;background:#0f172a;color:white;text-align:center;padding:40px">
 
 <h1>🌍 NexPath AI Humanitarian Engine</h1>
-<p>Global intelligent crisis detection system</p>
+<p>Global intelligent crisis + donation system</p>
 
 <input id="email" placeholder="Email (optional)" style="width:300px;padding:10px"><br><br>
+
 <textarea id="input" placeholder="Describe situation..." style="width:300px;height:120px"></textarea>
 
 <br><br>
@@ -35,21 +36,21 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// 🧠 AI SCORING ENGINE
+// 🧠 URGENCY ENGINE
 function calculateUrgency(text) {
   let score = 0;
 
   if (text.includes("emergency")) score += 40;
   if (text.includes("urgent")) score += 30;
+  if (text.includes("homeless")) score += 35;
   if (text.includes("no food") || text.includes("hungry")) score += 25;
-  if (text.includes("homeless") || text.includes("shelter")) score += 35;
   if (text.includes("sick") || text.includes("hospital")) score += 40;
   if (text.includes("child")) score += 30;
 
   return Math.min(score, 100);
 }
 
-// 💡 AI RESPONSE SUGGESTION
+// 💡 AI SUGGESTION ENGINE
 function getSuggestion(text) {
   if (text.includes("food") || text.includes("hungry")) return "Food Aid Required";
   if (text.includes("water")) return "Water Aid Required";
@@ -58,7 +59,7 @@ function getSuggestion(text) {
   return "General Support Needed";
 }
 
-// 🌍 MAIN FUNCTION
+// 🌍 MAIN SYSTEM
 window.submitRequest = async function () {
 
   let text = document.getElementById("input").value.toLowerCase();
@@ -72,6 +73,7 @@ window.submitRequest = async function () {
     urgencyScore >= 40 ? "HIGH" : "LOW";
 
   try {
+    // 🧾 SAVE REQUEST
     await addDoc(collection(db, "requests"), {
       message: text,
       email: email || "anonymous",
@@ -79,13 +81,15 @@ window.submitRequest = async function () {
       urgencyScore: urgencyScore,
       suggestion: suggestion,
       status: "pending",
+      totalDonations: 0,
       createdAt: Date.now()
     });
 
+    // 🧹 RESET UI
     document.getElementById("input").value = "";
 
     document.getElementById("output").innerHTML =
-      "🌍 Submitted!<br>" +
+      "🌍 Request submitted successfully!<br>" +
       "Priority: " + priority + "<br>" +
       "AI Score: " + urgencyScore + "/100<br>" +
       "Suggestion: " + suggestion;
