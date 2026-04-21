@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>NexPath AI - Global Heat Intelligence System</title>
+  <title>NexPath AI - Global Intelligence Evolution Engine</title>
 
   <style>
     body {
@@ -23,7 +23,7 @@
       position: absolute;
       top: 20px;
       left: 20px;
-      width: 350px;
+      width: 360px;
       background: rgba(0,0,0,0.75);
       padding: 20px;
       border-radius: 12px;
@@ -50,7 +50,7 @@
       position: absolute;
       right: 20px;
       top: 20px;
-      width: 300px;
+      width: 320px;
       background: rgba(0,0,0,0.85);
       padding: 15px;
       border-radius: 12px;
@@ -59,10 +59,16 @@
       z-index: 20;
     }
 
-    .heat {
-      color: #ff5555;
+    .ai {
+      color: #00ffe1;
       font-size: 12px;
-      margin-top: 8px;
+      margin-top: 10px;
+    }
+
+    .pressure {
+      color: #ff5555;
+      font-weight: bold;
+      margin-top: 10px;
     }
   </style>
 </head>
@@ -74,26 +80,30 @@
 <!-- PANEL -->
 <div class="panel">
 
-  <div class="title">🌍 NexPath AI Heat Engine</div>
-  <div>Living Global Intelligence System</div>
+  <div class="title">🌍 NexPath AI Evolution Engine</div>
+  <div>Global Intelligence System Active</div>
 
   <hr>
 
-  <div class="card">Global Impact: <span id="impact">149</span></div>
+  <div class="card">Global Impact: <span id="impact">153</span></div>
   <div class="card">Aid Delivered: <span id="aid">57</span></div>
   <div class="card">Active Regions: <span id="regions">12</span></div>
 
+  <div class="card pressure">
+    🌐 Global Pressure Index: <span id="pressure">0</span>/100
+  </div>
+
   <hr>
 
-  <div class="card" onclick="openAI('UAE','CRITICAL')">
+  <div class="card" onclick="triggerAI('UAE')">
     UAE - Food Crisis (CRITICAL)
   </div>
 
-  <div class="card" onclick="openAI('Kenya','HIGH')">
+  <div class="card" onclick="triggerAI('Kenya')">
     Kenya - Education Need (HIGH)
   </div>
 
-  <div class="card" onclick="openAI('France','LOW')">
+  <div class="card" onclick="triggerAI('France')">
     France - Volunteers Needed (LOW)
   </div>
 
@@ -114,83 +124,114 @@ const world = Globe()(document.getElementById('globe'))
 world.controls().autoRotate = true;
 world.controls().autoRotateSpeed = 0.6;
 
-/* 🌍 CRISIS HEAT SYSTEM */
-let crises = [
-  { name:"UAE", lat:25.276987, lng:55.296249, level:"CRITICAL", heat:1.0 },
-  { name:"Kenya", lat:-1.2921, lng:36.8219, level:"HIGH", heat:0.7 },
-  { name:"France", lat:48.8566, lng:2.3522, level:"LOW", heat:0.4 }
-];
+/* 🌍 GLOBAL MEMORY SYSTEM */
+let state = {
+  UAE: { level: "CRITICAL", heat: 1.0 },
+  Kenya: { level: "HIGH", heat: 0.7 },
+  France: { level: "LOW", heat: 0.4 }
+};
 
-/* 🌡️ HEAT VISUALIZATION */
+/* 🌡️ CRISIS DATA BUILDER */
+function buildData() {
+  return [
+    { name:"UAE", lat:25.276987, lng:55.296249, ...state.UAE },
+    { name:"Kenya", lat:-1.2921, lng:36.8219, ...state.Kenya },
+    { name:"France", lat:48.8566, lng:2.3522, ...state.France }
+  ];
+}
+
+/* 🌍 RENDER */
 function render() {
-
-  world.pointsData(crises)
-    .pointAltitude(d => 0.15 + d.heat * 0.1)
+  world.pointsData(buildData())
+    .pointAltitude(d => 0.15 + d.heat * 0.12)
     .pointColor(d => {
-
-      if (d.heat > 0.85) return "red";
-      if (d.heat > 0.6) return "orange";
+      if(d.heat > 0.85) return "red";
+      if(d.heat > 0.6) return "orange";
       return "yellow";
-
     });
 }
 
-/* 🔥 LIVING HEAT ENGINE */
-function updateHeat() {
+/* 🌡️ HEAT EVOLUTION */
+function evolveWorld() {
 
-  crises = crises.map(c => {
+  for (let key in state) {
 
-    let change = (Math.random() * 0.04 - 0.02);
-    let newHeat = Math.min(1, Math.max(0.2, c.heat + change));
+    let drift = (Math.random() * 0.04 - 0.02);
+    state[key].heat = Math.max(0.2, Math.min(1, state[key].heat + drift));
 
-    return { ...c, heat: newHeat };
-  });
+  }
 
   render();
+  updatePressure();
 }
 
-/* 🧠 AI POPUP */
-function openAI(region, level) {
+/* 🌐 GLOBAL PRESSURE ENGINE */
+function updatePressure() {
+
+  let total = (state.UAE.heat + state.Kenya.heat + state.France.heat) / 3;
+  let pressure = Math.floor(total * 100);
+
+  document.getElementById("pressure").innerText = pressure;
+}
+
+/* 🧠 CONTEXT AI ENGINE */
+function triggerAI(region) {
 
   const popup = document.getElementById("popup");
   popup.style.display = "block";
 
+  let s = state[region];
+
   popup.innerHTML = `
     <b>${region}</b><br><br>
-    Severity: ${level}
-    <div class="heat">🧠 AI ANALYSIS</div>
-    ${generateAI(level)}
+    Severity: ${s.level}<br>
+
+    <div class="ai">🧠 AI ANALYSIS</div>
+    ${generateInsight(region, s)}
   `;
 }
 
-/* 🧠 AI LOGIC */
-function generateAI(level) {
+/* 🧠 EVOLVING AI LOGIC */
+function generateInsight(region, s) {
 
-  if(level === "CRITICAL") {
-    return "Supply chain collapse risk detected → Immediate humanitarian deployment required";
+  if(region === "UAE") {
+    return `
+    Supply chain instability increasing over time.<br>
+    Food demand curve exceeding local distribution capacity.<br>
+    Recommendation: Immediate intervention escalation.
+    `;
   }
 
-  if(level === "HIGH") {
-    return "Resource gap detected → NGO + donor coordination recommended";
+  if(region === "Kenya") {
+    return `
+    Education resource gap fluctuating.<br>
+    Infrastructure support partially stabilizing.<br>
+    Recommendation: Long-term NGO coordination required.
+    `;
   }
 
-  return "Low urgency → Volunteer network activation suggested";
+  return `
+  Volunteer engagement declining trend detected.<br>
+  System imbalance between supply and demand.<br>
+  Recommendation: Recruitment + awareness expansion needed.
+  `;
 }
 
-/* 📊 LIVE METRICS */
+/* 📊 LIVE SYSTEM */
 setInterval(() => {
 
-  document.getElementById("impact").innerText = 149 + Math.floor(Math.random()*5);
+  document.getElementById("impact").innerText = 153 + Math.floor(Math.random()*5);
   document.getElementById("aid").innerText = 57 + Math.floor(Math.random()*2);
   document.getElementById("regions").innerText = 12;
 
 }, 2000);
 
-/* 🌡️ HEAT LOOP (IMPORTANT) */
-setInterval(updateHeat, 300);
+/* 🔄 WORLD LOOP */
+setInterval(evolveWorld, 400);
 
-/* INITIAL RENDER */
+/* INIT */
 render();
+updatePressure();
 
 </script>
 
