@@ -1,7 +1,11 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, getDocs } 
-from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { 
+  getFirestore, 
+  collection, 
+  getDocs, 
+  addDoc 
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDZuksXvvht9xPUTX32uOQx7h8ODvuRwJo",
@@ -25,26 +29,20 @@ async function loadDonors() {
   const snap = await getDocs(collection(db, "donations"));
 
   let donors = [];
-
-  snap.forEach(d => {
-    donors.push(d.data());
-  });
+  snap.forEach(d => donors.push(d.data()));
 
   allDonors = donors;
 }
 
 /* =========================
-   🤖 AUTO MATCH ENGINE
+   🤖 DONOR MATCH ENGINE
 ========================= */
 function findBestDonors(request) {
-  if (!allDonors.length) return [];
+  if (!allDonors || allDonors.length === 0) return [];
 
-  // simple logic: highest donations = priority donors
-  let ranked = [...allDonors]
-    .sort((a, b) => b.amount - a.amount)
+  return [...allDonors]
+    .sort((a, b) => (b.amount || 0) - (a.amount || 0))
     .slice(0, 3);
-
-  return ranked;
 }
 
 /* =========================
@@ -56,7 +54,7 @@ async function getDonationTotals() {
   let totals = {};
   snap.forEach(d => {
     const data = d.data();
-    totals[data.requestId] = (totals[data.requestId] || 0) + Number(data.amount);
+    totals[data.requestId] = (totals[data.requestId] || 0) + Number(data.amount || 0);
   });
 
   return totals;
@@ -99,6 +97,32 @@ function updateSummary() {
 }
 
 /* =========================
+   🚨 ALERT SYSTEM
+========================= */
+function showAlert(r) {
+  let alertBox = document.getElementById("alert");
+
+  if (!alertBox) {
+    alertBox = document.createElement("div");
+    alertBox.id = "alert";
+    alertBox.style = `
+      background:#7f1d1d;
+      padding:10px;
+      margin:10px 0;
+      border-radius:10px;
+      font-weight:bold;
+    `;
+    document.body.prepend(alertBox);
+  }
+
+  alertBox.innerHTML = `🚨 CRITICAL ALERT: ${r.message}`;
+
+  setTimeout(() => {
+    alertBox.innerHTML = "";
+  }, 5000);
+}
+
+/* =========================
    📊 RENDER
 ========================= */
 function render(data) {
@@ -113,6 +137,11 @@ function render(data) {
 
     let donors = findBestDonors(r);
 
+    // 🚨 trigger alert
+    if (r.priority === "CRITICAL") {
+      showAlert(r);
+    }
+
     list.innerHTML += `
       <div style="border:1px solid ${color};padding:10px;margin:10px;border-radius:10px;">
 
@@ -120,13 +149,16 @@ function render(data) {
 
         <p><b>Message:</b> ${r.message}</p>
         <p><b>AI Score:</b> ${r.urgencyScore || 0}</p>
-        <p><b>Category:</b> ${r.category}</p>
+        <p><b>Category:</b> ${r.category || "N/A"}</p>
 
-        <p><b>💰 Total Donations:</b> $${r.totalDonations}</p>
+        <p><b>💰 Total Donations:</b> $${r.totalDonations || 0}</p>
 
         <h4>🤖 Recommended Donors:</h4>
         <ul>
-          ${donors.map(d => `<li>${d.donorEmail} - $${d.amount}</li>`).join("")}
+          ${donors.length
+            ? donors.map(d => `<li>${d.donorEmail || "anonymous"} - $${d.amount || 0}</li>`).join("")
+            : "<li>No donors yet</li>"
+          }
         </ul>
 
         <p><b>AI Action:</b> ${
