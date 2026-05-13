@@ -1,128 +1,126 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>NexPath AI Global Engine</title>
-<style>
-  body {
-    margin: 0;
-    overflow: hidden;
-    background: black;
-    font-family: Arial, sans-serif;
-  }
+  <meta charset="UTF-8">
+  <title>Mankind Global — Private Pilot Mode</title>
+  <meta name="description" content="Mankind Global is an AI-powered humanitarian platform currently operating in a controlled private pilot phase. Platform access is limited during development and validation.">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  #ui {
-    position: absolute;
-    top: 30px;
-    left: 30px;
-    color: white;
-    z-index: 10;
-  }
+  <style>
+    * {
+      box-sizing: border-box;
+    }
 
-  h1 {
-    font-size: 22px;
-    letter-spacing: 2px;
-    opacity: 0.8;
-  }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: radial-gradient(circle at top, #0a1a2f, #050d1a);
+      color: #e6f1ff;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 24px;
+    }
 
-  .tag {
-    font-size: 12px;
-    opacity: 0.6;
-  }
-</style>
+    .container {
+      width: 100%;
+      max-width: 560px;
+      padding: 42px 28px;
+      border-radius: 18px;
+      background: rgba(10, 25, 47, 0.82);
+      box-shadow: 0 0 40px rgba(0, 150, 255, 0.14);
+      border: 1px solid rgba(0, 150, 255, 0.18);
+    }
+
+    .logo {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 10px;
+      letter-spacing: 4px;
+    }
+
+    .tagline {
+      font-size: 14px;
+      color: #9fc8ff;
+      margin-bottom: 34px;
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 18px;
+      border-radius: 999px;
+      background: rgba(255, 178, 64, 0.14);
+      color: #ffd28a;
+      font-size: 14px;
+      margin-bottom: 28px;
+      border: 1px solid rgba(255, 178, 64, 0.18);
+    }
+
+    h1 {
+      font-size: 30px;
+      margin: 0 0 18px;
+      letter-spacing: 1px;
+    }
+
+    p {
+      font-size: 16px;
+      color: #b9cbe4;
+      line-height: 1.7;
+      margin: 0 0 18px;
+    }
+
+    .footer {
+      margin-top: 34px;
+      font-size: 13px;
+      color: #6f88a8;
+    }
+
+    @media (max-width: 480px) {
+      .container {
+        padding: 36px 22px;
+      }
+
+      .logo {
+        font-size: 20px;
+        letter-spacing: 3px;
+      }
+
+      h1 {
+        font-size: 26px;
+      }
+
+      p {
+        font-size: 15px;
+      }
+    }
+  </style>
 </head>
+
 <body>
+  <main class="container">
+    <div class="logo">MANKIND GLOBAL</div>
+    <div class="tagline">AI-powered humanitarian platform</div>
 
-<div id="ui">
-  <h1>🌍 NEXPATH AI SYSTEM</h1>
-  <div class="tag">Global Humanitarian Intelligence Network</div>
-</div>
+    <div class="status">🔒 Pilot Mode Active</div>
 
-<script src="https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.min.js"></script>
+    <h1>Private Pilot Phase</h1>
 
-<script>
-// Scene
-const scene = new THREE.Scene();
+    <p>
+      Mankind Global is currently operating in a controlled pilot phase.
+      Platform access is limited while we validate real-world impact and system performance.
+    </p>
 
-// Camera
-const camera = new THREE.PerspectiveCamera(
-  75,
-  window.innerWidth / window.innerHeight,
-  0.1,
-  1000
-);
-camera.position.z = 2.5;
+    <p>
+      Public launch and organization registration will follow after pilot completion.
+    </p>
 
-// Renderer
-const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setSize(window.innerWidth, window.innerHeight);
-document.body.appendChild(renderer.domElement);
-
-// 🌍 Earth Geometry
-const geometry = new THREE.SphereGeometry(1, 64, 64);
-
-// 🌍 FIXED Earth Texture (reliable CDN)
-const texture = new THREE.TextureLoader().load(
-  "https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg"
-);
-
-const material = new THREE.MeshStandardMaterial({
-  map: texture
-});
-
-const earth = new THREE.Mesh(geometry, material);
-scene.add(earth);
-
-// 💡 Light (IMPORTANT for realism)
-const light = new THREE.PointLight(0xffffff, 1.5);
-light.position.set(5, 3, 5);
-scene.add(light);
-
-// 🌌 Stars background
-function addStars() {
-  const starGeometry = new THREE.BufferGeometry();
-  const starCount = 2000;
-  const positions = [];
-
-  for (let i = 0; i < starCount; i++) {
-    positions.push(
-      (Math.random() - 0.5) * 200,
-      (Math.random() - 0.5) * 200,
-      (Math.random() - 0.5) * 200
-    );
-  }
-
-  starGeometry.setAttribute(
-    "position",
-    new THREE.Float32BufferAttribute(positions, 3)
-  );
-
-  const starMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 0.5 });
-  const stars = new THREE.Points(starGeometry, starMaterial);
-  scene.add(stars);
-}
-
-addStars();
-
-// 🔄 Animation loop
-function animate() {
-  requestAnimationFrame(animate);
-
-  earth.rotation.y += 0.002;
-  earth.rotation.x += 0.0005;
-
-  renderer.render(scene, camera);
-}
-
-animate();
-
-// 📱 Responsive fix
-window.addEventListener("resize", () => {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
-});
-</script>
-
+    <div class="footer">
+      © 2026 Mankind Global Initiative
+    </div>
+  </main>
 </body>
 </html>
